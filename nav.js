@@ -40,7 +40,8 @@ function createNav(relativePath = '', activePageID = '') {
         { id: 'projekty-1txt', href: `${relativePath}projects/1.txt/1.txt.html`, text: '1.TXT' },
         { id: 'projekty-bezfiltru', href: `${relativePath}projects/bez filtru/bez.filtru.html`, text: 'Bez filtru' },
         { id: 'projekty-blokkada', href: `${relativePath}projects/font/font.html`, text: 'Blokkada' },
-        { id: 'projekty-citysmog', href: `${relativePath}projects/city smog super swag/city smog super swag.html`, text: 'City Smog Super Swag' }
+        { id: 'projekty-citysmog', href: `${relativePath}projects/city smog super swag/city smog super swag.html`, text: 'City Smog Super Swag' },
+        { id: 'projekty-bertik', href: `https://matyaskunstmuller.github.io/bertik/`, text: 'Bertík' }
     ];
 
     function buildSubNav(items) {
