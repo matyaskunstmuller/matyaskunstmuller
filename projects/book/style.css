@@ -183,6 +183,21 @@ body.desktop-nav-closed .book-viewport {
         z-index: 2; /* <-- PŘIDAT z-index (aby byla přední strana nahoře) */
     }
 
+.paper {
+    /* Přidáme nepatrný přesah pro skrytí středové spáry */
+    width: 50.1% !important; 
+    /* Pokud by papír "přetékal" vpravo, doladíme pozici */
+    margin-left: -0.1px;
+}
+
+.page-image-wrapper, .media-overlay {
+    /* Zajistíme, že se obsah roztáhne na celou (nyní nepatrně větší) plochu */
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+}
+
+
 /* Wrapper přidaný přes JS */
 .page-image-wrapper {
     position: absolute;

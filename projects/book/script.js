@@ -1,22 +1,18 @@
-// --- Globální proměnná a funkce pro skrytí návodu ---
+// ... (Začátek souboru beze změny)
 let instructionsHidden = false;
 
 function hideInstructions() {
-    if (instructionsHidden) return; // Udělá to jen jednou
-
+    if (instructionsHidden) return;
     const instructionPage = document.getElementById('instruction-page');
     if (instructionPage) {
         instructionPage.classList.add('hidden');
-        instructionsHidden = true; // Označíme, že je skryto
+        instructionsHidden = true;
     }
 }
-// ----------------------------------------------------
-
 
 // =================================================================
 //  KONFIGURACE A GLOBÁLNÍ PROMĚNNÉ
 // =================================================================
-
 const CONFIG = {
     animationDuration: 500,
     snapDuration: 350,
@@ -25,19 +21,40 @@ const CONFIG = {
     lightboxAnimDuration: 250
 };
 
+// ZMĚNA: Definice overlayů s podporou pro 'left' a 'right'
+// Předpokládám názvy souborů _1 pro levou a _2 pro pravou stranu podle logiky "Overlay1 vlevo".
 const mediaOverlays = {
-    6: { type: 'webm', src: 'assets/S3B-2_overlay.webm' },
-    8: { type: 'webm', src: 'assets/360-2_overlay.webm' },
-    7: { type: 'webm', src: 'assets/Piktogramy pro školu-1_overlay.webm' },
-    10: { type: 'webm', src: 'assets/Piktogramy pro školu-2_overlay.webm' },
-    12: { type: 'webm', src: 'assets/povalec-2_overlay.webm' },
-    13: { type: 'webm', src: 'assets/busking a ztohoven-1_overlay.webm' },
-    11: { type: 'webm', src: 'assets/toustak-1_overlay.webm' },
-    14: { type: 'webm', src: 'assets/toustak-2_overlay.webm' },
-    16: { type: 'webm', src: 'assets/ztohoven_overlay.webm' },
-    18: { type: 'webm', src: 'assets/Typotrip-2_overlay.webm' },
-    24: { type: 'webm', src: 'assets/city smog-2_overlay.webm' },
-    26: { type: 'webm', src: 'assets/1-txt-2_overlay_1.webm' },
+    2: { right: 'assets/S3B-2_overlay.webm' },
+    3: { right: 'assets/360-2_overlay.webm' },
+    
+    // Piktogramy (Spread 4) - Overlay 1 Left, Overlay 2 Right
+    4: { 
+        left: 'assets/Piktogramy pro školu-1_overlay.webm', 
+        right: 'assets/Piktogramy pro školu-2_overlay.webm' 
+    },
+      // bertik
+    5: { 
+        left: 'assets/bertik_1_overlay.webm', 
+        right: 'assets/bertik_2_overlay.webm' 
+    },
+    // Motion (Spread 6) - Busking Left, Ztohoven Right
+    6: { 
+        left: 'assets/busking a ztohoven-1_overlay.webm', 
+        right: 'assets/ztohoven_overlay.webm' 
+    },
+
+    7: { right: 'assets/Typotrip-2_overlay.webm' },
+    
+    // City Smog (Posunuto na 9)
+    10: { right: 'assets/city smog-2_overlay.webm' }, 
+    
+    // 1.TXT (Posunuto na 10)
+    11: { right: 'assets/1-txt-2_overlay_1.webm' }, 
+
+    // 1.TXT (Posunuto na 10)
+    12: {
+        left: 'assets/skicaky_1_overlay.webm', 
+        right: 'assets/skicaky_2_overlay.webm' }, 
 };
 
 const book = document.getElementById('book');
@@ -66,18 +83,22 @@ let spreadItems = [];
 let currentSpreadItemIndex = 0;
 let isLightboxAnimating = false;
 
-// Mapa pro ID v navigaci (musí odpovídat nav.js)
+// ZMĚNA: Aktualizovaná mapa pro navigaci (všechny sekce)
 const SPREAD_TO_NAV_ID_MAP = {
-    2: 'portfolio-s2',
-    3: 'portfolio-s3',
-    4: 'portfolio-s4',
+    2: 'portfolio-s2', 
+    3: 'portfolio-s3', 
+    4: 'portfolio-s4', 
     5: 'portfolio-s5',
-    6: 'portfolio-s6',
-    8: 'portfolio-s8',
-    9: 'portfolio-s9',
-    13: 'portfolio-s13'
+    6: 'portfolio-s6', 
+    7: 'portfolio-s7', 
+    8: 'portfolio-s8', 
+    9: 'portfolio-s9',   // City Smog
+    10: 'portfolio-s10', // 1.TXT
+    11: 'portfolio-s11', // Autorská (původně Bez Filtru slot, teď Autorská)
+    12: 'portfolio-s12', // Malý skicák
+    13: 'portfolio-s13', // Velký skicák
+    14: 'portfolio-s14'
 };
-
 
 function preloadLocalVideo(src) {
     const srcParts = src.split('.');
@@ -89,13 +110,8 @@ function preloadLocalVideo(src) {
         .then(response => { })
         .catch(err => console.warn('Preload failed:', err));
 }
-// =================================================================
 
-
-// =================================================================
-//  HLAVNÍ FUNKCE KNIHY
-// =================================================================
-
+// ... (Funkce updateBook a renderButtons beze změny)
 function updateBook(spread) {
     papers.forEach((paper, index) => {
         const progress = Math.max(0, Math.min(1, spread - index));
@@ -135,13 +151,8 @@ function renderButtons(spread) {
         interactiveLayer.appendChild(element);
     });
 }
-// =================================================================
 
-
-// =================================================================
-//  LIGHTBOX (Váš kód - beze změny)
-// =================================================================
-
+// ... (Lightbox funkce beze změny - open, close, load...)
 function openLightbox(index) {
     const clickedItem = galleryItems[index];
     if (!clickedItem) return;
@@ -386,21 +397,13 @@ function changeSpreadItem(direction) {
     setTimeout(() => { isLightboxAnimating = false; }, CONFIG.lightboxAnimDuration);
 }
 
-
-// =================================================================
-//  ZPRACOVÁNÍ VSTUPU A UDÁLOSTÍ
-// =================================================================
-
-//
-// === OPRAVENÁ FUNKCE setupEventListeners ===
-//
+// ... (EventListeners beze změny)
 function setupEventListeners() {
     slider.addEventListener('input', () => updateBook(parseFloat(slider.value)));
     slider.addEventListener('change', () => {
         const currentValue = parseFloat(slider.value);
         const targetSpread = Math.round(currentValue);
         if (Math.abs(currentValue - targetSpread) > 0.001) {
-            // Tady voláme animateTo, které už v sobě má logiku pro nav.js
             animateTo(currentValue, targetSpread, CONFIG.snapDuration);
         }
     });
@@ -421,8 +424,6 @@ function setupEventListeners() {
         }
     });
 
-    // === PŘIDÁNO: Listener pro kliknutí na navigaci ===
-    // Toto řeší problém 2 a 5: Kliknutí na odkaz v liště přetočí knihu plynule
     window.addEventListener('hashchange', () => {
         const hash = location.hash;
         let targetSpread = 0;
@@ -430,14 +431,10 @@ function setupEventListeners() {
             targetSpread = parseInt(hash.substring(8), 10);
             if (isNaN(targetSpread)) targetSpread = 0;
         }
-
-        // Přejdeme na dvoustranu, pouze pokud už tam nejsme
-        // Použijeme parseFloat pro přesné porovnání
         if (Math.abs(parseFloat(slider.value) - targetSpread) > 0.01) {
             animateTo(parseFloat(slider.value), targetSpread, CONFIG.animationDuration);
         }
     });
-    // === KONEC PŘIDÁNÍ ===
 
     setupLightboxControls();
     setupWheel();
@@ -468,7 +465,6 @@ function findNextSpreadWithItems(direction) {
     }
 }
 
-
 function changeSpread(delta) {
     if (state.isAnimating) return;
     const current = Math.round(parseFloat(slider.value));
@@ -478,18 +474,14 @@ function changeSpread(delta) {
     }
 }
 
-//
-// === OPRAVENÁ FUNKCE animateTo ===
-//
 function animateTo(start, end, duration, onCompleteCallback = null) {
-    // Povolí animaci s délkou 0 (pro start)
     if (state.isAnimating && duration > 0) return;
     state.isAnimating = true;
     const startTime = performance.now();
 
     const frame = (currentTime) => {
         const elapsed = currentTime - startTime;
-        const progress = (duration === 0) ? 1 : Math.min(elapsed / duration, 1); // Okamžitý skok při 0ms
+        const progress = (duration === 0) ? 1 : Math.min(elapsed / duration, 1);
         const ease = 0.5 * (1 - Math.cos(Math.PI * progress));
         const currentVal = (duration === 0) ? end : (start + (end - start) * ease);
 
@@ -504,20 +496,13 @@ function animateTo(start, end, duration, onCompleteCallback = null) {
             updateBook(end);
             renderButtons(end);
 
-            // === TOTO JE KLÍČOVÁ ZMĚNA ===
             const roundedEnd = Math.round(end);
-            // Aktualizujeme hash v URL, pouze pokud není voláno z 'hashchange'
-            // (prevence smyčky). `history.replaceState` je bezpečnější.
             if (location.hash !== `#spread=${roundedEnd}`) {
                 history.replaceState(null, '', `#spread=${roundedEnd}`);
             }
 
-            // Použijeme globální mapu
             const activeNavID = SPREAD_TO_NAV_ID_MAP[roundedEnd] || 'portfolio';
-
-            // Znovu vykreslíme navigaci s novým aktivním ID
             createNav('../../', activeNavID);
-            // === KONEC ZMĚNY ===
 
             if (onCompleteCallback) {
                 onCompleteCallback();
@@ -543,7 +528,6 @@ function setupWheel() {
         if (Math.abs(wheelAccumulator) < 0.001) {
             isWheelAnimating = false;
             const target = Math.round(parseFloat(slider.value));
-            // Tady voláme animateTo, které už v sobě má logiku pro nav.js
             animateTo(parseFloat(slider.value), target, CONFIG.snapDuration);
             return;
         }
@@ -628,32 +612,53 @@ function setupLightboxControls() {
 }
 
 function wrapPageImages() { document.querySelectorAll(".page-image").forEach(e => { const t = document.createElement("div"); t.className = "page-image-wrapper", e.parentNode.insertBefore(t, e), t.appendChild(e) }) }
-function setupMediaOverlays() { for (const e in mediaOverlays) { const t = mediaOverlays[e], o = document.querySelector(`#p${Math.floor((e - 1) / 2)} ${e % 2 != 0 ? ".back" : ".front"} .page-image-wrapper`); if (o) { const n = document.createElement("video"); n.className = "media-overlay", Object.assign(n, { src: t.src, autoplay: !0, muted: !0, loop: !0, playsInline: !0 }), o.appendChild(n) } } }
 
-// =================================================================
-//  SPUŠTĚNÍ APLIKACE
-// =================================================================
+// ZMĚNA: Přepsaná funkce pro overlays - nyní přesně cílí na ID elementu
+function setupMediaOverlays() { 
+    for (const spreadNum in mediaOverlays) { 
+        const config = mediaOverlays[spreadNum];
+        
+        if (config.right) {
+            const targetSelector = `#p${spreadNum} .front .page-image-wrapper`;
+            const container = document.querySelector(targetSelector);
+            if (container) { 
+                const vid = document.createElement("video"); 
+                vid.className = "media-overlay"; 
+                // ZMĚNA: Přidán object-fit cover pro eliminaci mezer na okrajích
+                vid.style.objectFit = "fit";
+                Object.assign(vid, { src: config.right, autoplay: true, muted: true, loop: true, playsInline: true }); 
+                container.appendChild(vid); 
+            }
+        }
 
-//
-// === OPRAVENÁ FUNKCE main ===
-//
+        if (config.left) {
+            const prevPaperIndex = parseInt(spreadNum) - 1;
+            const targetSelector = `#p${prevPaperIndex} .back .page-image-wrapper`;
+            const container = document.querySelector(targetSelector);
+            if (container) { 
+                const vid = document.createElement("video"); 
+                vid.className = "media-overlay"; 
+                // ZMĚNA: Přidán object-fit cover
+                vid.style.objectFit = "fit";
+                Object.assign(vid, { src: config.left, autoplay: true, muted: true, loop: true, playsInline: true }); 
+                container.appendChild(vid); 
+            }
+        }
+    } 
+}
+
 function main() {
-    // === DYNAMICKÉ VOLÁNÍ NAVIGACE ===
     const hash = location.hash;
     let initialSpread = 0;
-    let activeNavID = 'portfolio'; // Výchozí
+    let activeNavID = 'portfolio';
 
     if (hash.startsWith('#spread=')) {
         initialSpread = parseInt(hash.substring(8), 10);
         if (isNaN(initialSpread)) initialSpread = 0;
     }
 
-    // Zjistíme ID hned při startu
     activeNavID = SPREAD_TO_NAV_ID_MAP[initialSpread] || 'portfolio';
-
-    // Volání navigace se SPRÁVNÝM ID
     createNav('../../', activeNavID);
-    // ===================================
 
     galleryItems = buttonData
         .filter(item => !item.url)
@@ -666,10 +671,9 @@ function main() {
     slider.max = state.maxSpread;
     wrapPageImages();
     setupMediaOverlays();
-    setupEventListeners(); // Toto nyní zahrnuje 'hashchange' listener
+    setupEventListeners();
 
     if (initialSpread > 0) {
-        // Použijeme animateTo s nulovou délkou pro okamžitý skok
         animateTo(0, initialSpread, 0);
     } else {
         updateBook(0);
