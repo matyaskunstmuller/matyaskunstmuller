@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linoryty</title>
+    <link rel="stylesheet" href="../../main_style.css">
+    <style>
+        /* Styl pro hlavní obsah - nyní viditelný defaultně */
+        .real-content {
+            display: block; /* Změněno z none na block */
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0; /* Přidáno auto pro centrování obsahu */
+        }
+        
+        .profile-img {
+            display: block; /* Aby se obrázky řadily pod sebe bez mezer z řádkování */
+            width: 100%;
+            max-width: 900px;
+            height: auto;
+            border: 1px solid #333;
+            margin-bottom: 2rem;
+        }
+        
+        .bio-text {
+            line-height: 1.3;
+            color: #ccc;
+        }
+        
+        .banner {
+            max-width: 1500px;
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="nav-placeholder" class="nav-column"></div>
+
+    <main class="content-column">
+        <div id="final-content" class="real-content">
+            <img src="Matyas Kunstmüller - Portfolio-komprimovaný-1.webp" class="profile-img" alt="Matyas Kunstmüller - strana 1">
+            
+            </div>
+    </main>
+
+    <script src="../../nav.js"></script>
+    <script>
+        // Parametr '../' říká, že kořen webu je o jednu složku výš
+        if (typeof createNav === 'function') {
+            createNav('../../', 'projekty');
+        }
+
+       
+        ;
+    </script>
+</body>
+</html>

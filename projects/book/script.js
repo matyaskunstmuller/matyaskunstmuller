@@ -21,40 +21,42 @@ const CONFIG = {
     lightboxAnimDuration: 250
 };
 
-// ZMĚNA: Definice overlayů s podporou pro 'left' a 'right'
-// Předpokládám názvy souborů _1 pro levou a _2 pro pravou stranu podle logiky "Overlay1 vlevo".
 const mediaOverlays = {
+    1: { right: 'assets/ome.webm' },
     2: { right: 'assets/S3B-2_overlay.webm' },
     3: { right: 'assets/360-2_overlay.webm' },
     
-    // Piktogramy (Spread 4) - Overlay 1 Left, Overlay 2 Right
+    // Piktogramy (Spread 4)
     4: { 
         left: 'assets/Piktogramy pro školu-1_overlay.webm', 
         right: 'assets/Piktogramy pro školu-2_overlay.webm' 
     },
-      // bertik
+    // Bertik
     5: { 
         left: 'assets/bertik_1_overlay.webm', 
         right: 'assets/bertik_2_overlay.webm' 
     },
-    // Motion (Spread 6) - Busking Left, Ztohoven Right
+    // Motion (Spread 6)
     6: { 
         left: 'assets/busking a ztohoven-1_overlay.webm', 
         right: 'assets/ztohoven_overlay.webm' 
     },
 
     7: { right: 'assets/Typotrip-2_overlay.webm' },
+
+    8: { right: 'assets/blokkada_overlay.webm' },
     
-    // City Smog (Posunuto na 9)
+    // City Smog
     10: { right: 'assets/city smog-2_overlay.webm' }, 
     
-    // 1.TXT (Posunuto na 10)
+    // 1.TXT
     11: { right: 'assets/1-txt-2_overlay_1.webm' }, 
 
-    // 1.TXT (Posunuto na 10)
+    // Skicaky
     12: {
         left: 'assets/skicaky_1_overlay.webm', 
-        right: 'assets/skicaky_2_overlay.webm' }, 
+        right: 'assets/skicaky_2_overlay.webm' 
+    }, 
 };
 
 const book = document.getElementById('book');
@@ -83,7 +85,6 @@ let spreadItems = [];
 let currentSpreadItemIndex = 0;
 let isLightboxAnimating = false;
 
-// ZMĚNA: Aktualizovaná mapa pro navigaci (všechny sekce)
 const SPREAD_TO_NAV_ID_MAP = {
     2: 'portfolio-s2', 
     3: 'portfolio-s3', 
@@ -92,11 +93,11 @@ const SPREAD_TO_NAV_ID_MAP = {
     6: 'portfolio-s6', 
     7: 'portfolio-s7', 
     8: 'portfolio-s8', 
-    9: 'portfolio-s9',   // City Smog
-    10: 'portfolio-s10', // 1.TXT
-    11: 'portfolio-s11', // Autorská (původně Bez Filtru slot, teď Autorská)
-    12: 'portfolio-s12', // Malý skicák
-    13: 'portfolio-s13', // Velký skicák
+    9: 'portfolio-s9',   
+    10: 'portfolio-s10', 
+    11: 'portfolio-s11', 
+    12: 'portfolio-s12', 
+    13: 'portfolio-s13', 
     14: 'portfolio-s14'
 };
 
@@ -111,7 +112,28 @@ function preloadLocalVideo(src) {
         .catch(err => console.warn('Preload failed:', err));
 }
 
-// ... (Funkce updateBook a renderButtons beze změny)
+// === NOVÉ: CHYTRÉ NAČÍTÁNÍ OBRÁZKŮ (Lazy Loading) ===
+function managePageLoading(currentSpread) {
+    // Načte stránky v rozsahu: aktuální +/- 5 stran
+    const buffer = 5; 
+    const start = Math.max(0, Math.floor(currentSpread) - buffer);
+    const end = Math.min(papers.length, Math.floor(currentSpread) + buffer);
+
+    for (let i = start; i < end; i++) {
+        const paper = papers[i];
+        if (!paper) continue;
+
+        // Najdeme obrázky, které mají 'data-src'
+        const lazyImages = paper.querySelectorAll('img[data-src]');
+        
+        lazyImages.forEach(img => {
+            // Přehodíme cestu z data-src do src -> prohlížeč začne stahovat
+            img.src = img.dataset.src;
+            img.removeAttribute('data-src');
+        });
+    }
+}
+
 function updateBook(spread) {
     papers.forEach((paper, index) => {
         const progress = Math.max(0, Math.min(1, spread - index));
@@ -120,6 +142,9 @@ function updateBook(spread) {
         paper.style.zIndex = spread > index ? index : state.maxSpread - index;
     });
     renderButtons(Math.floor(spread));
+
+    // === ZDE VOLÁME NAČÍTÁNÍ OBRÁZKŮ ===
+    managePageLoading(spread);
 }
 
 function renderButtons(spread) {
@@ -152,7 +177,6 @@ function renderButtons(spread) {
     });
 }
 
-// ... (Lightbox funkce beze změny - open, close, load...)
 function openLightbox(index) {
     const clickedItem = galleryItems[index];
     if (!clickedItem) return;
@@ -397,7 +421,6 @@ function changeSpreadItem(direction) {
     setTimeout(() => { isLightboxAnimating = false; }, CONFIG.lightboxAnimDuration);
 }
 
-// ... (EventListeners beze změny)
 function setupEventListeners() {
     slider.addEventListener('input', () => updateBook(parseFloat(slider.value)));
     slider.addEventListener('change', () => {
@@ -613,7 +636,6 @@ function setupLightboxControls() {
 
 function wrapPageImages() { document.querySelectorAll(".page-image").forEach(e => { const t = document.createElement("div"); t.className = "page-image-wrapper", e.parentNode.insertBefore(t, e), t.appendChild(e) }) }
 
-// ZMĚNA: Přepsaná funkce pro overlays - nyní přesně cílí na ID elementu
 function setupMediaOverlays() { 
     for (const spreadNum in mediaOverlays) { 
         const config = mediaOverlays[spreadNum];
@@ -624,7 +646,6 @@ function setupMediaOverlays() {
             if (container) { 
                 const vid = document.createElement("video"); 
                 vid.className = "media-overlay"; 
-                // ZMĚNA: Přidán object-fit cover pro eliminaci mezer na okrajích
                 vid.style.objectFit = "fit";
                 Object.assign(vid, { src: config.right, autoplay: true, muted: true, loop: true, playsInline: true }); 
                 container.appendChild(vid); 
@@ -638,7 +659,6 @@ function setupMediaOverlays() {
             if (container) { 
                 const vid = document.createElement("video"); 
                 vid.className = "media-overlay"; 
-                // ZMĚNA: Přidán object-fit cover
                 vid.style.objectFit = "fit";
                 Object.assign(vid, { src: config.left, autoplay: true, muted: true, loop: true, playsInline: true }); 
                 container.appendChild(vid); 
@@ -678,6 +698,8 @@ function main() {
     } else {
         updateBook(0);
         renderButtons(0);
+        // === SPUŠTĚNÍ LAZY LOADING PRO PRVNÍ STRANU ===
+        managePageLoading(0);
     }
 }
 

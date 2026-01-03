@@ -39,13 +39,13 @@ function createNav(relativePath = '', activePageID = '') {
         { id: 'portfolio-s12', href: `${relativePath}projects/book/bookengine.html#spread=12`, text: 'skicák' }
     ];
 
-    // Pod-menu Projekty - Bertík nastaven na otevírání v novém okně
+    // Pod-menu Projekty - Seřazeno podle projekty.html
     const projektySubNav = [
-        { id: 'projekty-1txt', href: `${relativePath}projects/1.txt/1.txt.html`, text: '1.TXT' },
+        { id: 'projekty-bertik', href: `${relativePath}projects/bertik/bertik.html`, text: 'Bertík' },
         { id: 'projekty-bezfiltru', href: `${relativePath}projects/bez filtru/bez.filtru.html`, text: 'Bez filtru' },
         { id: 'projekty-blokkada', href: `${relativePath}projects/font/font.html`, text: 'Blokkada' },
-        { id: 'projekty-citysmog', href: `${relativePath}projects/city smog super swag/city smog super swag.html`, text: 'City Smog Super Swag' },
-        { id: 'projekty-bertik', href: `https://matyaskunstmuller.github.io/bertik/`, text: 'Bertík', target: '_blank' }
+        { id: 'projekty-1txt', href: `${relativePath}projects/1.txt/1.txt.html`, text: '1.TXT' },
+        { id: 'projekty-citysmog', href: `${relativePath}projects/city smog super swag/city smog super swag.html`, text: 'City Smog Super Swag' }
     ];
 
     // Pomocná funkce pro sestavení sub-nav (podporuje target="_blank")

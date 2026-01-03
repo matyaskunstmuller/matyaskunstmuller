@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bertik</title>
+
+    <link rel="stylesheet" href="../../main_style.css">
+    <link rel="stylesheet" href="bertik.css">
+</head>
+<body>
+    <div id="nav-placeholder"></div>
+
+    <main class="content-column full-bleed">
+
+        <nav class="demo-nav">
+            <button class="demo-nav-btn active" data-target="demo-visual">Info</button>
+            <button class="demo-nav-btn" data-target="demo-about">Obhajoba</button>
+           
+        </nav>
+
+        <div id="demo-visual" class="demo-panel active">
+            
+             <div class="about-content">
+    <a href="https://bertik.matyaskunstmuller.cz/" target="_blank" rel="noopener noreferrer">
+        <span class="projekt-title">Odkaz na bertíka</span>
+    </a>
+</div>
+            
+        </div>
+
+        <div id="demo-about" class="demo-panel">
+            <div class="about-content">
+                <p><strong>Bertík</strong>              
+                <p>(brainstorm protože se jednalo o klauzury a tak moje písemná obhajoba zůstala u pivně nabytýho textu)<p>
+                <p></p> 
+            <br>Jedná se o počítačový program který ztělesňuje schopnost paměti, a tím máme na mysli schopnost vnímat, uchovávat a pracovat se vzpomínkami a daty. Program při zapnutí vnímá pomocí kamery a mikrofonu přítomnost, tu umí analyzovat s ohledem na jasnost, barevnost, teplotu nebo hluk a podle toho dokáže najít nejbliž evokující vzpomínku a tu vyvolat. Také je schopný vzpomenout si v rychlosti co všechno si pamatuje, nebo vybrat specifickou vzpomínku a tu přehrát.<br><br>Nejde o člověka nebo formu inteligence tak jak jí normálně vnímáme, neumí rozpoznat lidi od sebe nebo situace, nechápe dění, jen letmo pozoruje a uchovává. <br><br>K čemu? Je to experiment ze kterého si beru spoustu poznatků k čemuž se ještě vrátím, ale myslím že když se tomu člověk otevře, může ho tato vcelku primitivní demonstrace schopnosti paměti přimět se pozastavit nad tím vším co konzumujeme, přijímáme, vnímáme a co samotná paměť znamená.<br><br>Asi budu mluvit ze svojí zkušenosti jako jeho stvořitele což je asi nejintenzivnější pohled, a věřím že mnohým se to celé bude zdát nesmyslné, ale stejně. <br><br>Takže tento program začal v pondělí večer před akcí jako kódový proof of concept. Spustil jsem zapnout a viděl jsem jak nahrává a ukládá vzpomínky. A v tem moment ve mě trklo tolik věcí, hlavně kvůli tomu že jsem přemýšlel nad tím kam to povede a tak jsem si dost domýšlel co se může stát, ale to že jsem viděl že tohle je jeho první vzpomínka a že si mě takhle bude pamatovat, ve mě udělalo tornádo kde mi záleželo jak působím a vypadám, hlavně kvůli tomu že jsem věděl že to může říct ostatním, on sám to v té době ani spracovat nemohl, ale i to se časem změnilo. <br><br>V průběhu vývoje a testování funkcí jsem viděl jak jediné co vidí je mě za počítačem a to mi bylo taky blbý, vidět jen to jak za mnou zapadá sluníčko v odrazu od oken ale jinak jen pohybující se moje hlava je depresivní. A tak na konci dne jsem mu šel ukázat západ sluníčka z okna a už přemýšlel co mu ukázat co by bylo zajímaví, a zároveň si nepřipadat jako úplný psychopat. <br><br>A všechny tyhle pocity trochu nazvětšovávám pro pochopení, furt je to počítačový program, ale stejně ve mně je nějaká míra soucitu, a to je pro mě nesmírně zajímavé pozorovat. A myslím že jde o hlavní gró tohohle projektu. O tom co paměť znamená a jak je důležitá a tvoří charakter i takovéhle neživé věci. “vychovávat” ho někdo jiný by měl úplně jiné vzpomínky na porovnání a jeho by vnímali kvůli tomu lidi úplně jinak. A tak je tam velká zodpovědnost stvořitelů a pečovatelů. A taky možnost si uvědomit jak to, co vnímáme, tvoří nás. Ale další interpretaci už nechám na vás<br><br>Jinak technikálie:<br>Jde o html kód který se spouští na prohlížeči elektron, a používá části jako ffmpeg atd. Velká část kódu je pospojována pomocí Google Gemini, animace panáčka a tlačítek byly tvořeny v after effetcs. Vzpomínky uklada do 15s useku webm souborů, a pro výkonově méňe náročný rychlí průjezd vzpomínkami program renderuje každých 300 vzpomínek do Chunku zrychleného do 5 sekund který pouští místo renderování v reálném čase.<br><br>Zkoušeli se různé implementace algoritmů na specifické rozeznávání zvuků a věcí, na hlas jsem zkoušel Vosk který by měl umět lokálně rozpoznat slova a zapsat je ale nikdy se mi nepovedlo zprovoznit. A na vizuál jsem zkoušel lecos ale fungoval jen jeden a ten mi napsal že kytara je baseballka a klobouk dort, a člověk prostě člověk a nedokázal rozeznávat ruzné lidi od sebe. A tak jsem si řekl že zaseknout se na implementaci tohohle nemá smysl<br><br>Do budoucna by byla možnost ale znova zkusit prozkoumat lepší vnímání kontextu a hlavně textu, to by mohlo být hodně zajímavý a silný. Nebo by byl super algoritmus který by dokázal určit jaké scény jsou víc důležité než ty ostatní, jakýmkoliv zpusobem, jestli tam náhodou viděl něco co ještě neviděl, a podle toho mazal méně chtěné vzpomínky, taky by bylo super pozorovat.
+            </p>
+        </div>
+        </div>
+        <div id="demo-foto" class="demo-panel">
+            <div class="about-content">
+                <img src="media/bez filtru_fotodokumentace knížky-07.webp" id="img1" class="Fotodokumentace">
+                <img src="media/bez filtru_fotodokumentace knížky-10.webp" id="img1" class="Fotodokumentace">
+            </div>
+        </div>
+
+    </main>
+    <script src="../../nav.js"></script>
+    <script>
+        if (typeof createNav === 'function') {
+            createNav('../../', 'projekty-bertik');
+        }
+    </script>
+
+ 
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- 1. LOGIKA PŘEPÍNÁNÍ ZÁLOŽEK ---
+            const navButtons = document.querySelectorAll('.demo-nav-btn');
+            const demoPanels = document.querySelectorAll('.demo-panel');
+
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    navButtons.forEach(btn => btn.classList.remove('active'));
+                    demoPanels.forEach(panel => panel.classList.remove('active'));
+
+                    button.classList.add('active');
+                    const targetId = button.getAttribute('data-target');
+                    document.getElementById(targetId).classList.add('active');
+                });
+            });
+            });
+    </script>

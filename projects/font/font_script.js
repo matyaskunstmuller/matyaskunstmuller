@@ -1,36 +1,43 @@
 document.addEventListener('DOMContentLoaded', () => {
     const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
-    // --- LOGIKA PŘEPÍNÁNÍ ZÁLOŽEK A OVLÁDACÍCH TLAČÍTEK ---
+    // --- 1. GLOBÁLNÍ NAVIGACE A UI ---
     const navButtons = document.querySelectorAll('.demo-nav-btn');
     const demoPanels = document.querySelectorAll('.demo-panel');
     const wallControls = document.querySelector('.wall-controls');
 
+    // Funkce pro zobrazení/skrytí ovládání stěny (Play/Mute)
     function updateWallControlsVisibility(targetId) {
         if (wallControls) {
+            // Zobrazit jen pokud je aktivní panel 'demo3' (Stěna)
             wallControls.style.display = (targetId === 'demo3') ? 'flex' : 'none';
         }
     }
 
     navButtons.forEach(button => {
         button.addEventListener('click', () => {
+            // Deaktivovat vše
             navButtons.forEach(btn => btn.classList.remove('active'));
             demoPanels.forEach(panel => panel.classList.remove('active'));
 
+            // Aktivovat vybrané
             button.classList.add('active');
             const targetId = button.getAttribute('data-target');
             document.getElementById(targetId)?.classList.add('active');
 
+            // Aktualizovat viditelnost ovládání stěny
             updateWallControlsVisibility(targetId);
         });
     });
 
+    // Inicializace při načtení (podle toho, která záložka je active v HTML)
     const initialActiveButton = document.querySelector('.demo-nav-btn.active');
     if (initialActiveButton) {
         updateWallControlsVisibility(initialActiveButton.getAttribute('data-target'));
     }
 
-    // --- DEMO 1: SANDBOX (PLNĚ FUNKČNÍ) ---
+
+    // --- 2. DEMO 1: SANDBOX (OPTIMALIZOVANÝ) ---
     (function setupInteractiveDemo1() {
         const textElement = document.getElementById('interactive-text');
         const weightSlider = document.getElementById('weight-slider');
@@ -50,22 +57,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function getCaretPosition(element) { let position = 0; const selection = window.getSelection(); if (selection.rangeCount > 0) { const range = selection.getRangeAt(0); const preCaretRange = range.cloneRange(); preCaretRange.selectNodeContents(element); preCaretRange.setEnd(range.endContainer, range.endOffset); position = preCaretRange.toString().length; } return position; }
         function setCaretPosition(element, position) { const range = document.createRange(); const selection = window.getSelection(); let charCount = 0; let found = false; function traverse(node) { if (found) return; if (node.nodeType === Node.TEXT_NODE) { const len = node.length; if (charCount + len >= position) { range.setStart(node, position - charCount); range.collapse(true); selection.removeAllRanges(); selection.addRange(range); found = true; } else { charCount += len; } } else { for (const child of node.childNodes) { traverse(child); } } } if (element.childNodes.length > 0) traverse(element); }
-        function getBaseVariationSettings() { let wght = weightSlider.value, hght = heightSlider.value; if (['wght', 'both'].includes(activeMode)) wght = MIN_WGHT; if (['hght', 'both'].includes(activeMode)) hght = MIN_HGHT; return `'wght' ${wght}, 'hght' ${hght}`; }
-        function applyStylesToText(settings) { letters.forEach(span => { span.style.fontVariationSettings = settings; }); }
 
-        function adjustFontSizeToFit() {
+        function getBaseVariationSettings() { 
+            let wght = weightSlider.value, hght = heightSlider.value; 
+            if (['wght', 'both'].includes(activeMode)) wght = MIN_WGHT; 
+            if (['hght', 'both'].includes(activeMode)) hght = MIN_HGHT; 
+            return `'wght' ${wght}, 'hght' ${hght}`; 
+        }
+
+        // Rychlá aplikace stylů (pro slidery a animace)
+        function applyStylesToText(settings) { 
+            if (letters.length > 0) {
+                letters.forEach(span => { span.style.fontVariationSettings = settings; });
+            } else {
+                textElement.style.fontVariationSettings = settings;
+            }
+        }
+
+        // Pomalý výpočet velikosti (pouze při resize nebo změně textu)
+        function fitTextContainer() {
             const container = textElement.parentElement;
             const computedStyle = window.getComputedStyle(container);
-            const paddingLeft = parseFloat(computedStyle.paddingLeft);
-            const paddingRight = parseFloat(computedStyle.paddingRight);
-            const maxWidth = container.clientWidth - paddingLeft - paddingRight;
+            const paddingX = parseFloat(computedStyle.paddingLeft) + parseFloat(computedStyle.paddingRight);
+            const maxWidth = container.clientWidth - paddingX;
+            const maxHeight = container.clientHeight;
 
-            if (!textElement.textContent.trim()) { textElement.style.fontSize = '10px'; return; }
+            if (!textElement.textContent.trim()) { 
+                textElement.style.fontSize = '10px'; 
+                return; 
+            }
+
+            const currentSettings = letters.length > 0 && letters[0].style.fontVariationSettings 
+                ? letters[0].style.fontVariationSettings 
+                : getBaseVariationSettings();
+
+            // Nastavit max parametry pro výpočet "bezpečné" velikosti
+            const maxSettings = "'wght' 900, 'hght' 800";
+            if (letters.length > 0) {
+                letters.forEach(s => s.style.fontVariationSettings = maxSettings);
+            } else {
+                textElement.style.fontVariationSettings = maxSettings;
+            }
+
+            let minFont = 10;
+            let maxFont = maxHeight; 
+            let bestSize = minFont;
 
             textElement.style.visibility = 'hidden';
-            let minFont = 10;
-            let maxFont = container.clientHeight;
-            let bestSize = minFont;
 
             while (minFont <= maxFont) {
                 let midFont = Math.floor((minFont + maxFont) / 2);
@@ -78,71 +116,134 @@ document.addEventListener('DOMContentLoaded', () => {
                     maxFont = midFont - 1;
                 }
             }
+
             textElement.style.fontSize = bestSize + 'px';
             textElement.style.visibility = 'visible';
+            
+            // Obnovit vizuální stav
+            if (letters.length > 0) {
+                letters.forEach(s => s.style.fontVariationSettings = currentSettings);
+            } else {
+                textElement.style.fontVariationSettings = currentSettings;
+            }
         }
 
-        function updateText() {
-            adjustFontSizeToFit();
-            applyStylesToText(getBaseVariationSettings());
-        }
-
-        function wrapLetters(shouldUpdate = true) {
+        function wrapLetters() {
             let text = textElement.textContent.replace(/(\r\n|\n|\r)/gm, "");
-            if (text !== textElement.textContent) {
-                textElement.textContent = text;
-            }
+            if (text.length === 0) text = " "; 
+            if (text !== textElement.textContent) textElement.textContent = text;
+            
             textElement.innerHTML = '';
-            letters = text.split('').map(char => { const span = document.createElement('span'); span.textContent = char; if (char.trim() === '') span.style.whiteSpace = 'pre'; textElement.appendChild(span); return span; });
-            if (shouldUpdate) {
-                updateText();
-            }
+            letters = text.split('').map(char => { 
+                const span = document.createElement('span'); 
+                span.textContent = char; 
+                if (char.trim() === '') span.style.whiteSpace = 'pre'; 
+                textElement.appendChild(span); 
+                return span; 
+            });
+
+            fitTextContainer();
+            applyStylesToText(getBaseVariationSettings());
         }
 
         function handleInteraction(e) {
             if (activeMode === 'off' || animationFrameId) return;
             const point = e.touches ? e.touches[0] : e;
             if (!point) return;
+            
             const hoveredEl = document.elementFromPoint(point.clientX, point.clientY);
             if (!textElement.contains(hoveredEl)) {
                 handleInteractionEnd();
                 return;
             }
+            
             const hoveredIndex = letters.indexOf(hoveredEl);
             if (hoveredIndex === -1) return;
+
             letters.forEach((span, index) => {
                 const distance = Math.abs(index - hoveredIndex);
                 const influence = Math.max(0, 1 - distance / 10);
-                const wghtValue = (activeMode === 'wght' || activeMode === 'both') ? MIN_WGHT + (900 - MIN_WGHT) * influence : weightSlider.value;
-                const hghtValue = (activeMode === 'hght' || activeMode === 'both') ? MIN_HGHT + (800 - MIN_HGHT) * influence : heightSlider.value;
+                
+                const currentWght = parseInt(weightSlider.value);
+                const currentHght = parseInt(heightSlider.value);
+
+                const wghtValue = (activeMode === 'wght' || activeMode === 'both') 
+                    ? MIN_WGHT + (900 - MIN_WGHT) * influence 
+                    : currentWght;
+                
+                const hghtValue = (activeMode === 'hght' || activeMode === 'both') 
+                    ? MIN_HGHT + (800 - MIN_HGHT) * influence 
+                    : currentHght;
+
                 span.style.fontVariationSettings = `'wght' ${wghtValue}, 'hght' ${hghtValue}`;
             });
         }
 
         function handleInteractionEnd() {
             if (activeMode === 'off' || animationFrameId) return;
-            updateText();
+            applyStylesToText(getBaseVariationSettings());
         }
 
-        function waveAnimation() { const time = Date.now() * 0.002; letters.forEach((span, index) => { const influence = (Math.sin(time - index * 0.2) + 1) / 2; const wghtValue = (['wght', 'both'].includes(activeMode)) ? MIN_WGHT + (900 - MIN_WGHT) * influence : weightSlider.value; const hghtValue = (['hght', 'both'].includes(activeMode)) ? MIN_HGHT + (800 - MIN_HGHT) * influence : heightSlider.value; span.style.fontVariationSettings = `'wght' ${wghtValue}, 'hght' ${hghtValue}`; }); animationFrameId = requestAnimationFrame(waveAnimation); }
-        function stopWaveAnimation() { if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; waveToggle.innerHTML = '▶'; waveToggle.classList.remove('playing'); updateText(); } }
-        function startWaveAnimation() { if (!animationFrameId && activeMode !== 'off') { waveToggle.innerHTML = '❚❚'; waveToggle.classList.add('playing'); waveAnimation(); } }
+        function waveAnimation() { 
+            const time = Date.now() * 0.002; 
+            const baseWght = parseInt(weightSlider.value);
+            const baseHght = parseInt(heightSlider.value);
+
+            letters.forEach((span, index) => { 
+                const influence = (Math.sin(time - index * 0.2) + 1) / 2; 
+                const wghtValue = (['wght', 'both'].includes(activeMode)) 
+                    ? MIN_WGHT + (900 - MIN_WGHT) * influence : baseWght; 
+                const hghtValue = (['hght', 'both'].includes(activeMode)) 
+                    ? MIN_HGHT + (800 - MIN_HGHT) * influence : baseHght; 
+                span.style.fontVariationSettings = `'wght' ${wghtValue}, 'hght' ${hghtValue}`; 
+            }); 
+            animationFrameId = requestAnimationFrame(waveAnimation); 
+        }
+
+        function stopWaveAnimation() { 
+            if (animationFrameId) { 
+                cancelAnimationFrame(animationFrameId); 
+                animationFrameId = null; 
+                waveToggle.innerHTML = '▶'; 
+                waveToggle.classList.remove('playing'); 
+                applyStylesToText(getBaseVariationSettings()); 
+            } 
+        }
+
+        function startWaveAnimation() { 
+            if (!animationFrameId && activeMode !== 'off') { 
+                waveToggle.innerHTML = '❚❚'; 
+                waveToggle.classList.add('playing'); 
+                waveAnimation(); 
+            } 
+        }
 
         function setInteractionMode(newMode) {
             switcher.querySelector('.active')?.classList.remove('active');
             switcher.querySelector(`[data-mode="${newMode}"]`)?.classList.add('active');
             activeMode = newMode;
+            
             if (activeMode === 'off') { stopWaveAnimation(); }
-            weightSlider.disabled = ['wght', 'both'].includes(activeMode);
-            heightSlider.disabled = ['hght', 'both'].includes(activeMode);
-            weightSliderGroup.classList.toggle('disabled', weightSlider.disabled);
-            heightSliderGroup.classList.toggle('disabled', heightSlider.disabled);
-            updateText();
+            
+            const isWghtActive = ['wght', 'both'].includes(activeMode);
+            const isHghtActive = ['hght', 'both'].includes(activeMode);
+
+            weightSlider.disabled = isWghtActive;
+            heightSlider.disabled = isHghtActive;
+            
+            weightSliderGroup.classList.toggle('disabled', isWghtActive);
+            heightSliderGroup.classList.toggle('disabled', isHghtActive);
+            
+            applyStylesToText(getBaseVariationSettings());
         }
 
-        weightSlider.addEventListener('input', updateText);
-        heightSlider.addEventListener('input', updateText);
-        textElement.addEventListener('input', () => { const pos = getCaretPosition(textElement); wrapLetters(); setCaretPosition(textElement, pos); });
+        weightSlider.addEventListener('input', () => applyStylesToText(getBaseVariationSettings()));
+        heightSlider.addEventListener('input', () => applyStylesToText(getBaseVariationSettings()));
+        textElement.addEventListener('input', () => { 
+            const pos = getCaretPosition(textElement); 
+            wrapLetters(); 
+            setCaretPosition(textElement, pos); 
+        });
 
         document.body.addEventListener('mousemove', handleInteraction);
         document.body.addEventListener('touchmove', handleInteraction, { passive: true });
@@ -150,23 +251,18 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.addEventListener('touchend', handleInteractionEnd);
 
         waveToggle.addEventListener('click', () => {
-            if (animationFrameId) {
-                stopWaveAnimation();
-            } else {
-                if (activeMode === 'off') {
-                    setInteractionMode('both');
-                }
+            if (animationFrameId) stopWaveAnimation();
+            else {
+                if (activeMode === 'off') setInteractionMode('both');
                 startWaveAnimation();
             }
         });
 
         switcher.addEventListener('click', e => {
-            if (e.target.classList.contains('switch-btn')) {
-                setInteractionMode(e.target.dataset.mode);
-            }
+            if (e.target.classList.contains('switch-btn')) setInteractionMode(e.target.dataset.mode);
         });
 
-        const resizeObserver = new ResizeObserver(() => { if (textElement.textContent) { updateText(); } });
+        const resizeObserver = new ResizeObserver(() => { if (textElement.textContent) fitTextContainer(); });
         resizeObserver.observe(textElement.parentElement);
 
         weightSlider.disabled = ['wght', 'both'].includes(activeMode);
@@ -174,17 +270,12 @@ document.addEventListener('DOMContentLoaded', () => {
         weightSliderGroup.classList.toggle('disabled', weightSlider.disabled);
         heightSliderGroup.classList.toggle('disabled', heightSlider.disabled);
 
-        wrapLetters(false);
-
-        setTimeout(() => {
-            updateText();
-            if (activeMode !== 'off') {
-                startWaveAnimation();
-            }
-        }, 100);
+        wrapLetters();
+        setTimeout(() => { if (activeMode !== 'off') startWaveAnimation(); }, 100);
     })();
 
-    // --- DEMO 3: STĚNA ---
+
+    // --- 3. DEMO 3: STĚNA (LOREM WALL) ---
     (function initializeLoremWall() {
         const canvas = document.getElementById('lorem-wall-canvas');
         if (!canvas) return;
@@ -267,8 +358,8 @@ document.addEventListener('DOMContentLoaded', () => {
             function stopAnimationLoop() { currentAnimationMode = 'off'; toggleButton.innerHTML = '▶'; toggleButton.classList.remove('playing'); }
 
             canvas.addEventListener('click', e => { if (currentAnimationMode === 'loop') return; initAudio(); const rect = canvas.getBoundingClientRect(); triggerWave(e.clientX - rect.left, e.clientY - rect.top, audioCtx ? audioCtx.currentTime : 0); });
-            toggleButton.addEventListener('click', () => { if (currentAnimationMode === 'loop') stopAnimationLoop(); else startAnimationLoop(); });
-            soundButton.addEventListener('click', () => { isMuted = !isMuted; if (!audioCtx) initAudio(); if (mainGain) mainGain.gain.value = isMuted ? 0 : 1; soundButton.textContent = isMuted ? '🔇' : '🔊'; });
+            toggleButton?.addEventListener('click', () => { if (currentAnimationMode === 'loop') stopAnimationLoop(); else startAnimationLoop(); });
+            soundButton?.addEventListener('click', () => { isMuted = !isMuted; if (!audioCtx) initAudio(); if (mainGain) mainGain.gain.value = isMuted ? 0 : 1; soundButton.textContent = isMuted ? '🔇' : '🔊'; });
 
             const resizeObserver = new ResizeObserver(() => { setTimeout(setup, 50); });
             resizeObserver.observe(canvas.parentElement);

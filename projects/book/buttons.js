@@ -119,10 +119,15 @@ Počítačový program který zachycuje vzpomínky. Zaměřuje se na schopnost p
 `,
         styles: { top: '6%', left: '1%', width: '48%', height: '22%' }
     },
+       {
+        spread: 5,
+        url: `../bertik/bertik.html`,
+        styles: { top: '31%', left: '38%', width: '9%', height: '7%' }
+    },
  {
         spread: 5,
         mediaSrc: 'media/showcase animace panaček_1.webm',
-        styles: { top: '27%', left: '7%', width: '37%', height: '40%' }
+        styles: { top: '35%', left: '15%', width: '22%', height: '32%' }
     },
     {
         spread: 5,
@@ -231,7 +236,27 @@ Počítačový program který zachycuje vzpomínky. Zaměřuje se na schopnost p
         text: `Blokkada
         
         Autorský variable font, jehož cílem bylo prozkoumat technické a kreativní možnosti proměnlivého písma. Jeho design vychází z geometrického gridu 3×8 a je charakteristický motivem dvojitých spojů. Font disponuje dvěma proměnnými osami, které ovládají výšku a tloušťku tahu. Projekt se vyvinul od skic na papíře až po finální zpracování v programu FontLab, kde byly definovány mastry a logika interpolace.`,
-        styles: { top: '8%', left: '1%', width: '48%', height: '20%' }
+        styles: { top: '12%', left: '1%', width: '48%', height: '20%' }
+    },
+      {
+        spread: 8,
+        url: `../font/font.html`,
+        styles: { top: '42%', left: '30%', width: '15%', height: '10%' }
+    },
+     {
+        spread: 8,
+         mediaSrc: 'media/Blokkada - Matyas Kunstmüller (1).webp',
+        styles: { top: '55%', left: '1%', width: '48%', height: '40%' }
+    },
+    {
+        spread: 8,
+        mediaSrc: 'media/medium2_spread4.webm',
+        styles: { top: '1%', left: '50%', width: '50%', height: '98%' }
+    },
+       {
+        spread: 8,
+        mediaSrc: 'media/Blokkada8animationweight-ezgif.com-gif-to-webp-converter.webp',
+        styles: { top: '1%', left: '350%', width: '50%', height: '98%' }
     },
 
     // =================================
@@ -245,6 +270,57 @@ Počítačový program který zachycuje vzpomínky. Zaměřuje se na schopnost p
         Autorský deník zachycující období prozkoumávání modifikací kompaktu. Fotografie jsou doplněné o autorské vstupy vložené přímo do obrazu, které popisují tvůrčí proces a vývoj celého projektu`,
         styles: { top: '6%', left: '1%', width: '48%', height: '13%' }
     },
+      {
+        spread: 9,
+        url: `../bez filtru/bez.filtru.html`,
+        styles: { top: '23%', left: '30%', width: '15%', height: '10%' }
+    },
+       {
+        spread: 9,
+        mediaSrc: 'media/Bez filtru_prezentační plakát1(barevný).jpg',
+        styles: { top: '35%', left: '4%', width: '28%', height: '55%' }
+    },
+  {
+        spread: 9,
+        mediaSrc: 'media/bez filtru_fotodokumentace knížky-03.webp',
+        styles: { top: '1%', left: '50%', width: '50%', height: '50%' }
+    },
+     {
+        spread: 9,
+        mediaSrc: 'media/bez filtru_fotodokumentace knížky-08.webp',
+        styles: { top: '50%', left: '374%', width: '26%', height: '49%' }
+    },
+ {
+        spread: 9,
+        mediaSrc: 'media/bez filtru_fotodokumentace knížky-10.webp',
+        styles: { top: '50%', left: '374%', width: '26%', height: '49%' }
+    },
+
+     {
+        spread: 9,
+        mediaSrc: 'media/Návrhová plocha 2.jpg',
+        styles: { top: '50%', left: '50%', width: '24%', height: '49%' }
+    },
+     {
+        spread: 9,
+        mediaSrc: 'media/uaaa loda.jpg',
+        styles: { top: '50%', left: '74%', width: '26%', height: '49%' }
+    },
+    {
+        spread: 9,
+        mediaSrc: 'media/DSC03806-2.jpg',
+        styles: { top: '50%', left: '374%', width: '26%', height: '49%' }
+    },
+    {
+        spread: 9,
+        mediaSrc: 'media/ražba ve stanuplener.jpg',
+        styles: { top: '50%', left: '374%', width: '26%', height: '49%' }
+    },
+    {
+        spread: 9,
+        mediaSrc: 'media/DSC03306.jpg',
+        styles: { top: '50%', left: '374%', width: '26%', height: '49%' }
+    },
 
     // =================================
     // City Smog (Spread 10)
@@ -257,11 +333,16 @@ Počítačový program který zachycuje vzpomínky. Zaměřuje se na schopnost p
         Interaktivní instalace, která proměňuje běžné světelné a zvukové podněty města v hudební a vizuální zážitek. Divák může pomocí  pohybu v TouchDesigneru tyto prvky v reálném čase ovládat.`,
         styles: { top: '6%', left: '1%', width: '48%', height: '17%' }
     },
+      {
+        spread: 10,
+        url: `../city smog super swag/city smog super swag.html`,
+        styles: { top: '32%', left: '17%', width: '15%', height: '10%' }
+    },
     {
         spread: 10,
         mediaSrc: 'media/showcase naživo.webm',
         mediaControls: true,
-        styles: { top: '1%', left: '350%', width: '50%', height: '98%' }
+        styles: { top: '60%', left: '2%', width: '46%', height: '36%' }
     },
     {
         spread: 10,
@@ -321,4 +402,72 @@ Počítačový program který zachycuje vzpomínky. Zaměřuje se na schopnost p
         Otevřený projekt založený na spontánním sběru scenů pomocí ručního skeneru. Během každodenního pohybu v prostoru skenuji povrchy a materiály, které mě vizuálně zaujmou. Výsledné skeny jsou prezentovány jako abstraktní textury zbavené původního kontextu, čímž je kladen důraz na jejich samostatný vizuální potenciál.`,
         styles: { top: '6%', left: '1%', width: '48%', height: '20%' }
     },
+     {
+        spread: 11,
+        url: `../1.txt/1.txt.html`,
+        styles: { top: '32%', left: '25%', width: '15%', height: '10%' }
+    },
+    {
+        spread: 11,
+        mediaSrc: 'media/1-txt-2_overlay 2.webm',
+        styles: { top: '1%', left: '50%', width: '50%', height: '98%' }
+    },
+
+
+
+     {
+        spread: 12,
+        mediaSrc: 'media/Bez dwdwdwd1.webp',
+        styles: { top: '4%', left: '4%', width: '90%', height: '90%' }
+    },
+     {
+        spread: 12,
+        mediaSrc: 'media/wdaawda.webp',
+        styles: { top: '4%', left: '304%', width: '90%', height: '90%' }
+    },
+      {
+        spread: 12,
+        mediaSrc: 'media/adwadadwwddw.webp',
+        styles: { top: '4%', left: '304%', width: '90%', height: '90%' }
+    },
+      {
+        spread: 12,
+        mediaSrc: 'media/awdadw.webp',
+        styles: { top: '4%', left: '304%', width: '90%', height: '90%' }
+    },
+      {
+        spread: 12,
+        mediaSrc: 'media/awdawdad.webp',
+        styles: { top: '4%', left: '304%', width: '90%', height: '90%' }
+    },
+      {
+        spread: 12,
+        mediaSrc: 'media/awdawdadwadadw.webp',
+        styles: { top: '4%', left: '304%', width: '90%', height: '90%' }
+    },
+      {
+        spread: 12,
+        mediaSrc: 'media/awdawdawdad.webp',
+        styles: { top: '4%', left: '304%', width: '90%', height: '90%' }
+    },
+      {
+        spread: 12,
+        mediaSrc: 'media/ddddd.webp',
+        styles: { top: '4%', left: '304%', width: '90%', height: '90%' }
+    },
+      {
+        spread: 12,
+        mediaSrc: 'media/ddddddf.webp',
+        styles: { top: '4%', left: '304%', width: '90%', height: '90%' }
+    },  {
+        spread: 12,
+        mediaSrc: 'media/dddddg.webp',
+        styles: { top: '4%', left: '304%', width: '90%', height: '90%' }
+    },
+    {
+        spread: 12,
+        mediaSrc: 'media/dddddw.webp',
+        styles: { top: '4%', left: '304%', width: '90%', height: '90%' }
+    },
+    
 ];

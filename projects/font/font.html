@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Variable Font - Blokkada VF</title>
+    <title>Blokkada</title>
     <link rel="stylesheet" href="../../main_style.css" />
     <link rel="stylesheet" href="font_style.css" />
 </head>
@@ -15,10 +15,10 @@
             <button class="demo-nav-btn" data-target="demo3">Stěna</button>
             <button class="demo-nav-btn" data-target="demo-about">O fontu</button>
         </nav>
-        <div class="wall-controls">
-            <button id="wall-animation-toggle" class="control-btn">▶</button>
-            <button id="wall-sound-toggle" class="control-btn">🔇</button>
+        
+        
         </div>
+
         <div class="demo-content">
             <div id="demo1" class="demo-panel active">
                 <div class="sandbox-wrapper">
@@ -48,20 +48,22 @@
                     </div>
                 </div>
             </div>
+
             <div id="demo3" class="demo-panel">
                 <canvas id="lorem-wall-canvas"></canvas>
             </div>
+
             <div id="demo-about" class="demo-panel">
                 <div class="about-content">
                     <p>Blokkada je autorský projekt zaměřený na prozkoumávání možností variable fontů. Jedná se o strukturovaně jednoduchý grotesk, který vychází z 3×8 kostičkového gridu. Typickým prvkem jsou jeho dvojené spoje, jež vytvářejí dojem dvojité linky procházející napříč všemi literami — motiv, který font sjednocuje a dává mu charakteristický vizuální rytmus. Jeho ostrá, geometricky čistá konstrukce působí zároveň futuristicky i monumentálně, přičemž netradiční proporce dodávají písmu jemně exotický výraz.</p>
 
-                    <img src="image_95e85d.png" alt="Ukázka gridu a konstrukce fontu Blokkada">
+                    
 
                     <p>Základ projektu vznikl z experimentů s písmem na čtverečkovaném papíru. Místo tradičních konstrukčních pomůcek, jako jsou elipsy či pomocné linie, jsem využil samotný grid jako stavební princip. Tyto studie jsem následně převedl do digitální podoby – jednak jako způsob, jak se zlepšit v práci s grafickými počítačovými programy, a taky proto, že jednoduchá struktura fontu k tomu přímo vybízela. První verze tak dlouho existovala pouze v souboru Adobe Illustratoru.</p>
                     <img src="assets/první variace.webp" alt="Výstupy z Ai souboru">
                     <p>Když přišel čas pustit se do vlastního autorského písma, bylo přirozené na tento koncept navázat. Původní návrh měl už poměrně jasnou podobu, a tak jsem se rozhodl posunout jej dál prostřednictvím variable fontu. Cílem bylo nejen naučit se technický proces jeho tvorby, ale i pochopit, jak takový systém funguje.</p>
 
-                    <img src="assets/variace.png" alt="Vývojové fáze a varianty fontu Blokkada">
+                    <img src="assets/fontlab variable osy.webp" alt="Vývojové fáze a varianty fontu Blokkada">
 
                     <p>Po řadě pokusů a omezeních mě dostupného softwaru jsem dospěl k řešení se třemi mastery a sadou interpolovaných variant. Přestože to stále nebyl plnohodnotný variable font, považoval jsem to za důležitý krok vpřed.</p>
                     <p>K projektu jsem se později vrátil v rámci zkoumání interakce a kódování, kdy jsem se rozhodl font konečně dokončit. Po několika konzultacích jsem ho převedl do programu FontLab, kde je nyní v současné fázi vývoje.</p>
@@ -76,7 +78,10 @@
     <script src="font_script.js"></script>
     <script src="../../nav.js"></script>
     <script>
-        createNav('../../', 'projekty-blokkada');
+        // Parametr '../' nebo '../../' záleží na vaší struktuře složek
+        if (typeof createNav === 'function') {
+            createNav('../../', 'projekty-blokkada');
+        }
     </script>
 </body>
 </html>

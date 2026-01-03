@@ -35,17 +35,18 @@
     min-height: 0;
 }
 
-    .demo-panel.active {
-        display: flex;
-    }
+.demo-panel.active {
+    display: flex;
+}
 
 /* --- Navigace Demoverzí --- */
 .demo-nav {
     display: flex;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid #333;
+    margin-bottom: 0.5rem; /* Menší mezera */
+    border-bottom: none;
     flex-shrink: 0;
     flex-wrap: wrap;
+    align-items: center;
 }
 
 .demo-nav-btn {
@@ -54,20 +55,28 @@
     background: transparent;
     border: none;
     color: #888;
-    font-family: 'Roboto Mono', monospace;
+    font-family: sans-serif;
     font-size: 0.9rem;
     border-bottom: 2px solid transparent;
     transition: color 0.2s, border-bottom-color 0.2s;
 }
 
-    .demo-nav-btn:hover {
-        color: #fff;
-    }
+.demo-nav-btn:hover {
+    color: #fff;
+}
 
-    .demo-nav-btn.active {
-        color: #fff;
-        border-bottom-color: #fff;
-    }
+.demo-nav-btn.active {
+    color: #fff;
+    border-bottom-color: #fff;
+}
+
+/* --- Ovládání Stěny (Wall Controls) --- */
+/* Důležité: defaultně skryté, JS je zobrazí jen u Stěny */
+.wall-controls {
+    display: none; 
+    margin-left: auto; /* Zarovnání doprava vedle menu */
+    gap: 8px;
+}
 
 /* --- Demo 1: Sandbox --- */
 .sandbox-wrapper {
@@ -75,13 +84,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid #333;
+    border: none;
+    background: transparent;
     border-radius: 8px;
     padding: 1rem;
     overflow: hidden;
-    min-height: 150px;
-    background: #080808;
-    margin-bottom: 1rem;
+    min-height: 100px; /* Menší minimální výška */
+    margin-bottom: 0.5rem;
 }
 
 #interactive-text {
@@ -97,106 +106,138 @@
     cursor: text;
 }
 
-    #interactive-text span {
-        transition: font-variation-settings 0.1s ease-out;
-    }
+#interactive-text span {
+    transition: font-variation-settings 0.1s ease-out;
+}
 
-/* --- Ovládací prvky (slidery) - nyní dole --- */
+/* --- Ovládací prvky (slidery) - Základ (Mobil/Tablet) --- */
 .sliders {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.5fr auto;
     gap: 1rem;
-    padding: 0.5rem;
+    padding: 1rem;
     background: #111;
     border-radius: 8px;
+    align-items: end;
     flex-shrink: 0;
 }
 
 .slider-group {
-    flex: 1 1 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.slider-group.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.slider-group label {
+    font-size: 0.75rem;
+    color: #aaa;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.slider-group input[type="range"] {
+    width: 100%;
+    cursor: pointer;
+    height: 4px;
+    margin: 8px 0;
+    accent-color: #fff; 
+}
+
+/* Switcher (Interakce) */
+.switcher-group {
     display: flex;
     flex-direction: column;
 }
 
-    .slider-group.disabled {
-        opacity: 0.5;
-        pointer-events: none;
-    }
-
-    .slider-group label {
-        font-size: 0.8rem;
-        color: #aaa;
-        margin-bottom: 0.5rem;
-    }
-
-    .slider-group input[type="range"] {
-        width: 100%;
-    }
-
 .switcher {
     display: flex;
-    border: 1px solid #555;
-    border-radius: 8px;
+    border: 1px solid #444;
+    border-radius: 6px;
     overflow: hidden;
+    height: 40px; /* Výchozí pro touch */
 }
 
 .switch-btn {
-    flex-grow: 1;
+    flex: 1;
     background: transparent;
-    color: #aaa;
+    color: #888;
     border: none;
-    padding: 0.5rem;
+    padding: 0 0.5rem;
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
     font-size: 0.8rem;
-}
-
-    .switch-btn:not(:last-child) {
-        border-right: 1px solid #555;
-    }
-
-    .switch-btn:hover {
-        background: #444;
-        color: #fff;
-    }
-
-    .switch-btn.active {
-        background: #fff;
-        color: #000;
-    }
-
-.control-btn {
-    background: rgba(50, 50, 50, 0.7);
-    color: #fff;
-    border: 1px solid #555;
-    border-radius: 8px;
-    width: 40px;
-    height: 34px;
-    cursor: pointer;
-    font-size: 1.2rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s;
+    border-right: 1px solid #333;
 }
 
-    .control-btn:hover {
-        background: rgba(80, 80, 80, 0.9);
-    }
+.switch-btn:last-child {
+    border-right: none;
+}
+
+.switch-btn:hover {
+    background: #222;
+    color: #ddd;
+}
+
+.switch-btn.active {
+    background: #ccc;
+    color: #000;
+}
+
+/* Tlačítka (Play/Pause) */
+.wave-button-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.control-btn {
+    background: rgba(50, 50, 50, 0.5);
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 6px;
+    width: 100%;
+    min-width: 40px;
+    height: 40px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.control-btn:hover {
+    background: rgba(80, 80, 80, 0.8);
+    border-color: #666;
+}
+
+.control-btn.playing {
+    border-color: #fff;
+    background: #333;
+}
 
 /* --- Tooltip --- */
 #disabled-slider-tooltip {
     position: fixed;
     display: none;
-    background: #eee;
-    color: #111;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
+    background: #333;
+    color: #fff;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
     z-index: 1000;
     pointer-events: none;
-    transform: translate(15px, 15px);
+    transform: translate(10px, 10px);
     white-space: nowrap;
+    border: 1px solid #555;
 }
 
 /* --- Demo 3: Stěna --- */
@@ -212,62 +253,92 @@
     height: 100%;
 }
 
-.wall-controls {
-    display: flex;
-    justify-content: flex-start;
-    gap: 10px;
-    margin-bottom: 1rem;
+/* --- O FONTU --- */
+.about-content {
+    display: block;
+    padding: 1rem 2rem;
+    max-width: 600px;
+    margin: 0;
+    color: #ccc;
+    font-family: inherit;
+    line-height: 1.6;
+    overflow-y: auto;
+    scrollbar-width: none;
 }
 
-@media (max-width: 600px) {
+.about-content::-webkit-scrollbar {
+    display: none;
+}
+
+.about-content p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.2rem;
+    text-align: left; 
+}
+
+.about-content img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #333;
+    margin: 0 0 1.5rem 0;
+    display: block;
+}
+
+/* --- RESPONZIVITA --- */
+
+/* 1. Desktop (Nad 768px) - Kompaktní UI */
+@media (min-width: 769px) {
     .sliders {
-        row-gap: 1.5rem;
+        padding: 0.75rem 1rem; /* Menší padding */
+        gap: 1.5rem; /* Větší mezery mezi skupinami */
+        height: auto;
+    }
+    
+    .slider-group label {
+        font-size: 0.7rem;
+        margin-bottom: 0.3rem;
     }
 
-    .slider-group {
-        flex-basis: 100%;
+    .slider-group input[type="range"] {
+        margin: 5px 0; /* Méně místa kolem slideru */
+    }
+
+    .switcher {
+        height: 32px; /* Menší výška tlačítek */
+    }
+    
+    .switch-btn {
+        font-size: 0.75rem;
+        padding: 0 0.8rem;
+    }
+    
+    .control-btn {
+        height: 32px; /* Menší tlačítko Play */
+        width: 40px;
+    }
+}
+
+/* 2. Mobil (Pod 768px) - Přeskládání */
+@media (max-width: 768px) {
+    .sliders {
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    #weight-slider-group,
+    #height-slider-group {
+        grid-column: span 1;
     }
 
     .switcher-group {
-        flex-basis: auto;
-        flex-grow: 1;
-        padding-right: 1rem;
+        grid-column: span 2;
+        margin-top: 0.5rem;
     }
 
     .wave-button-group {
-        flex-basis: auto;
-        flex-grow: 0;
+        grid-column: span 2;
     }
 }
-
-.about-content {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 1rem 2rem;
-    overflow-y: auto;
-    color: #ccc;
-    font-family: sans-serif;
-    /* ZMĚNA: Přidány vlastnosti pro skrytí posuvníku */
-    scrollbar-width: none; /* Pro Firefox */
-    -ms-overflow-style: none; /* Pro IE a Edge */
-}
-
-    /* ZMĚNA: Přidáno pravidlo pro skrytí posuvníku v Chromu a Safari */
-    .about-content::-webkit-scrollbar {
-        display: none;
-    }
-
-    .about-content p {
-        font-size: 1rem;
-        line-height: 1.7;
-        margin-bottom: 1.5rem;
-        text-align: justify;
-    }
-
-    .about-content img {
-        max-width: 100%;
-        height: auto;
-        border-radius: 8px;
-        margin: 1rem 0 2rem 0;
-        display: block;
-    }

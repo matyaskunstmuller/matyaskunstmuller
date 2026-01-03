@@ -20,27 +20,141 @@
 
 html, body {
     height: 100%;
+    overflow: hidden; /* Zabrání scrollování body */
+    margin: 0;
+    background: #000;
 }
 
-
-
-.book-viewport {
+/* Hlavní kontejner, který sedí vedle bočního menu */
+.content-column {
     margin-left: var(--nav-width);
     width: calc(100% - var(--nav-width));
-    height: 100vh;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
     transition: margin-left var(--nav-transition-speed) ease-in-out;
     position: relative;
-    /* Ponecháváme flex pro centrování knihy */
+    background: radial-gradient(circle, #020202 0%, #000000 75%);
+}
+
+body.desktop-nav-closed .content-column {
+    margin-left: 40px;
+    width: calc(100% - 40px);
+}
+
+/* ===================================== */
+/* === HORNÍ NAVIGACE (ZÁLOŽKY) === */
+/* ===================================== */
+.demo-nav {
+    display: flex;
+    flex-shrink: 0; /* Navigace se nesmí zmenšovat */
+    padding: 1rem 1.5rem 0.5rem 1.5rem;
+    z-index: 500;
+    background: transparent;
+}
+
+.demo-nav-btn {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    color: #888;
+    font-family: sans-serif; /* Nebo váš font */
+    font-size: 0.9rem;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-bottom-color 0.2s;
+    margin-right: 1rem;
+}
+
+.demo-nav-btn:hover {
+    color: #fff;
+}
+
+.demo-nav-btn.active {
+    color: #fff;
+    border-bottom-color: #fff;
+}
+
+/* ===================================== */
+/* === PANELY OBSAHU === */
+/* ===================================== */
+.demo-panel {
+    display: none;
+    flex-grow: 1; /* Panel vyplní zbytek výšky */
+    width: 100%;
+    min-height: 0; /* Důležité pro flexbox scrolling */
+    position: relative;
+}
+
+.demo-panel.active {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===================================== */
+/* === KNIHA (Úprava Viewportu) === */
+/* ===================================== */
+
+.book-viewport {
+    /* Původní marginy odstraněny, řeší to .content-column */
+    margin: 0;
+    width: 100%;
+    height: 100%; /* Vyplní panel */
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    background: radial-gradient(circle, #222222 0%, #000000 75%);
+    /* Background je nyní na .content-column, ale můžeme ho nechat i tady pro jistotu */
+    background: transparent; 
 }
 
-body.desktop-nav-closed .book-viewport {
-    margin-left: 40px;
-    width: calc(100% - 40px);
+/* ===================================== */
+/* === O KNÍŽCE (Styl O mně) === */
+/* ===================================== */
+.about-content {
+    display: block;
+    justify-content: left;
+    padding: 2rem 3rem;
+    max-width: 700px;
+    margin: 0;
+    
+    color: #ccc;
+    font-family: inherit;
+    line-height: 1.6;
+    
+    overflow-y: auto; /* Scrollování textu */
+    height: 100%;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.about-content::-webkit-scrollbar {
+    display: none;
+}
+
+.about-content p {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+/* ===================================== */
+/* === RESPONZIVITA (Mobil) === */
+/* ===================================== */
+@media (orientation: portrait) {
+    .content-column {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .demo-nav {
+        justify-content: center;
+    }
+    
+    .about-content {
+        padding: 1.5rem;
+        font-size: 0.95rem;
+    }
 }
 
 
@@ -53,31 +167,19 @@ body.desktop-nav-closed .book-viewport {
     transform-style: preserve-3d;
     perspective: 2500px;
     z-index: 100;
-    /* Tyto rozměry fungují správně pro .book jako flex-item */
-    height: 90vh;
-    width: calc(90vh * var(--spread-aspect-ratio));
+    height: 80vh;
+    width: calc(80vh * var(--spread-aspect-ratio));
     aspect-ratio: var(--spread-aspect-ratio);
     max-width: calc(100% - 160px);
 }
 
 #interactive-layer {
-    /* Původní pravidla pro pozicování */
     position: absolute;
     pointer-events: none;
     z-index: 1500;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    /* * === ZDE JE KLÍČOVÁ OPRAVA ===
-     * Použijeme stejná pravidla pro šířku, max-šířku a poměr stran
-     * jako má .book, ale 'height' nastavíme na 'auto'.
-     *
-     * Tím donutíme výšku vrstvy, aby se VŽDY vypočítala 
-     * z aktuální šířky (která je omezena max-width),
-     * a zachovala tak poměr stran.
-     * 'max-height: 90vh' zajišťuje, že vrstva nikdy nebude vyšší 
-     * než kniha při plné velikosti.
-    */
     width: calc(90vh * var(--spread-aspect-ratio));
     max-width: calc(100% - 160px);
     aspect-ratio: var(--spread-aspect-ratio);
@@ -87,18 +189,16 @@ body.desktop-nav-closed .book-viewport {
 
 @media (orientation: portrait) {
     .book {
-        /* Pravidla pro knihu na mobilu */
         width: 90vw;
         height: auto;
         max-width: 90vw;
     }
 
     #interactive-layer {
-        /* Pravidla pro vrstvu na mobilu */
         width: 90vw;
         height: auto;
         max-width: 90vw;
-        max-height: none; /* Na mobilu nepotřebujeme omezovat výšku */
+        max-height: none;
     }
 }
 
@@ -111,11 +211,10 @@ body.desktop-nav-closed .book-viewport {
     border-radius: 4px;
 }
 
-    .interactive-button:hover {
-        background: rgba(255, 255, 255, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.7);
-    }
-
+.interactive-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+}
 
 /* ===================================== */
 /* === STRÁNKY A OBSAH === */
@@ -130,34 +229,32 @@ body.desktop-nav-closed .book-viewport {
     transform-origin: left center;
 }
 
-    /* === TOTO JE KLÍČOVÁ ZMĚNA === */
-    .paper .front, .paper .back {
-        position: absolute;
-        inset: 0;
-        backface-visibility: hidden;
-        transform-style: preserve-3d;
-        background: transparent; /* <-- ZMĚNĚNO Z #000 NA #FFFFFF (BÍLÁ) */
-    }
+.paper .front, .paper .back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+    background: transparent;
+}
 
-    /* TENTO BLOK MÁTE - UPRAVTE HO PODLE TOHOTO */
-    .paper .back {
-        transform: rotateY(180deg) translateZ(-1px); /* <-- PŘIDAT translateZ */
-        z-index: 1; /* <-- PŘIDAT z-index */
-    }
+.paper .back {
+    transform: rotateY(180deg) translateZ(-1px);
+    z-index: 1;
+}
 
-    /* TENTO BLOK VÁM ÚPLNĚ CHYBÍ - CELÝ HO PŘIDEJTE */
-    .paper .front {
-        transform: translateZ(1px); /* <-- PŘIDAT translateZ (pro "odlepení") */
-        z-index: 2; /* <-- PŘIDAT z-index (aby byla přední strana nahoře) */
-    }
+.paper .front {
+    transform: translateZ(1px);
+    z-index: 2;
+}
 
-/* Wrapper přidaný přes JS */
 .page-image-wrapper {
     position: absolute;
     inset: 0;
     overflow: hidden;
 }
 
+/* === ÚPRAVA PRO LAZY LOADING === */
+/* Přidáno pozadí a přechod pro hladké načtení */
 .page-image, .media-overlay {
     position: absolute;
     inset: 0;
@@ -166,11 +263,15 @@ body.desktop-nav-closed .book-viewport {
     object-fit: contain;
     display: block;
     pointer-events: none;
+    background-color: transparent; 
+    transition: opacity 0.3s ease-in;
 }
+
 
 .media-overlay {
     z-index: 2;
     object-fit: contain;
+    background-color: transparent;
 }
 
 /* ===================================== */
@@ -192,25 +293,14 @@ body.desktop-nav-closed .book-viewport {
     line-height: 1;
 }
 
-    .nav-arrow:hover {
-        background: rgba(0, 0, 0, 0.6);
-    }
+.nav-arrow:hover {
+    background: rgba(0, 0, 0, 0.6);
+}
 
-    .nav-arrow.left::before {
-        content: '←';
-    }
-
-    .nav-arrow.right::before {
-        content: '→';
-    }
-
-    .nav-arrow.left {
-        left: 20px;
-    }
-
-    .nav-arrow.right {
-        right: 20px;
-    }
+.nav-arrow.left::before { content: '←'; }
+.nav-arrow.right::before { content: '→'; }
+.nav-arrow.left { left: 20px; }
+.nav-arrow.right { right: 20px; }
 
 .slider-wrap {
     position: absolute;
@@ -227,12 +317,12 @@ body.desktop-nav-closed .book-viewport {
     cursor: grab;
 }
 
-    #pageSlider:active {
-        cursor: grabbing;
-    }
+#pageSlider:active {
+    cursor: grabbing;
+}
 
 /* ===================================== */
-/* === LIGHTBOX (ČISTÝ PÁS) === */
+/* === LIGHTBOX === */
 /* ===================================== */
 .lightbox {
     position: fixed;
@@ -243,26 +333,23 @@ body.desktop-nav-closed .book-viewport {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
-    /* Padding pro lištu na desktopu */
     padding-bottom: var(--reel-height-desktop);
     box-sizing: border-box;
 }
 
-    .lightbox.show {
-        opacity: 1;
-        pointer-events: auto;
-    }
-
+.lightbox.show {
+    opacity: 1;
+    pointer-events: auto;
+}
 
 #lightbox-stage {
     position: relative;
     width: 100%;
-    height: 100%; /* Zabere výšku .lightbox (který má padding) */
+    height: 100%;
     overflow: hidden;
     background: transparent;
 }
 
-/* Wrapper pro každou položku (média nebo text) */
 .lightbox-item {
     position: absolute;
     left: 50%;
@@ -275,61 +362,39 @@ body.desktop-nav-closed .book-viewport {
     transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease-out;
 }
 
-    .lightbox-item.active {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-        z-index: 10;
-    }
+.lightbox-item.active { transform: translate(-50%, -50%) scale(1); opacity: 1; z-index: 10; }
+.lightbox-item.prev { transform: translate(-50%, -150%) scale(0.8); opacity: 0; z-index: 5; }
+.lightbox-item.next { transform: translate(-50%, 150%) scale(0.8); opacity: 0; z-index: 5; }
 
-    .lightbox-item.prev {
-        transform: translate(-50%, -150%) scale(0.8);
-        opacity: 0;
-        z-index: 5;
-    }
+.lightbox-item > .lightbox-media {
+    width: auto;
+    height: auto;
+    max-width: calc(100vw - var(--lightbox-h-padding) * 2);
+    max-height: calc(100vh - var(--reel-height-desktop) - var(--lightbox-v-padding) * 2);
+    object-fit: contain;
+    display: block;
+}
 
-    .lightbox-item.next {
-        transform: translate(-50%, 150%) scale(0.8);
-        opacity: 0;
-        z-index: 5;
-    }
+.lightbox-item > .lightbox-text {
+    background-color: transparent;
+    color: #fff;
+    line-height: 1.7;
+    font-size: 1.1rem;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    width: auto;
+    height: auto;
+    max-width: 70ch;
+    padding: 1.5em;
+    box-sizing: border-box;
+    max-height: calc(100vh - var(--reel-height-desktop) - var(--lightbox-v-padding) * 2);
+    overflow-y: auto;
+    margin: 0;
+}
 
-
-    /* === OBSAH UVNITŘ WRAPPERU === */
-
-    /* Pravidlo pro SOLO MÉDIA (bez textu) i MÉDIA S TEXTEM */
-    .lightbox-item > .lightbox-media {
-        width: auto;
-        height: auto;
-        max-width: calc(100vw - var(--lightbox-h-padding) * 2);
-        max-height: calc(100vh - var(--reel-height-desktop) - var(--lightbox-v-padding) * 2);
-        object-fit: contain;
-        display: block;
-    }
-
-    /* Pravidlo pro SOLO TEXT */
-    .lightbox-item > .lightbox-text {
-        background-color: transparent;
-        color: #fff;
-        line-height: 1.7;
-        font-size: 1.1rem;
-        text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
-        width: auto;
-        height: auto;
-        max-width: 70ch;
-        padding: 1.5em;
-        box-sizing: border-box;
-        max-height: calc(100vh - var(--reel-height-desktop) - var(--lightbox-v-padding) * 2);
-        overflow-y: auto;
-        margin: 0;
-    }
-
-
-/* === TEXT K MÉDIÍM (PŘES CELOU OBRAZOVKU) === */
-.lightbox-text-overlay { /* Přejmenováno pro přehlednost */
+.lightbox-text-overlay {
     position: fixed;
     left: 50%;
     transform: translateX(-50%);
-    /* Pozice pro DESKTOP: Nad lištou */
     bottom: var(--reel-height-desktop);
     margin-bottom: 10px;
     width: auto;
@@ -339,25 +404,21 @@ body.desktop-nav-closed .book-viewport {
     font-size: 0.85rem;
     line-height: 1.5;
     color: #fff;
-    /* Bez pozadí, jen stín */
     background: transparent;
     text-shadow: 0 0 5px rgba(0,0,0,1), 0 0 8px rgba(0,0,0,0.7);
     padding: 0.75em 1em;
     border-radius: 4px;
     text-align: center;
     z-index: 26500;
-    /* Skryto by default */
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease-out;
 }
 
-    /* Zobrazí se, jen když je aktivní */
-    .lightbox-text-overlay.active {
-        opacity: 1;
-        pointer-events: auto;
-    }
-
+.lightbox-text-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
 
 .lb-close {
     position: absolute;
@@ -374,29 +435,13 @@ body.desktop-nav-closed .book-viewport {
     transition: background-color 0.2s;
 }
 
-    .lb-close:hover {
-        background: rgba(0,0,0,0.8);
-    }
+.lb-close:hover { background: rgba(0,0,0,0.8); }
+.lightbox-arrow.left::before { content: '←'; }
+.lightbox-arrow.right::before { content: '→'; }
 
-.lightbox-arrow.left::before {
-    content: '←';
-}
+/* === REEL & DOTS === */
+#lightbox-reel, #lightbox-dots { display: none; }
 
-.lightbox-arrow.right::before {
-    content: '→';
-}
-
-/* ===================================== */
-/* === LIGHTBOX REEL & DOTS === */
-/* ===================================== */
-
-/* Výchozí stav: obojí skryté */
-#lightbox-reel,
-#lightbox-dots {
-    display: none;
-}
-
-/* Desktop: Zobrazí LIŠTU, pokud je .has-multiple-items */
 .lightbox.has-multiple-items #lightbox-reel {
     position: absolute;
     bottom: 0;
@@ -404,7 +449,7 @@ body.desktop-nav-closed .book-viewport {
     width: 100%;
     height: var(--reel-height-desktop);
     z-index: 26000;
-    display: flex; /* <-- ZOBRAZIT NA DESKTOPU */
+    display: flex;
     justify-content: center;
     align-items: center;
     padding: 10px;
@@ -415,7 +460,6 @@ body.desktop-nav-closed .book-viewport {
     background: transparent;
 }
 
-/* Mobil: Zobrazí TEČKY, pokud je .has-multiple-items */
 .lightbox.has-multiple-items #lightbox-dots {
     position: absolute;
     bottom: 0;
@@ -423,7 +467,7 @@ body.desktop-nav-closed .book-viewport {
     width: 100%;
     height: var(--reel-height-mobile);
     z-index: 26000;
-    display: none; /* <-- Na desktopu skryté */
+    display: none;
     justify-content: center;
     align-items: center;
     padding: 5px;
@@ -451,50 +495,34 @@ body.desktop-nav-closed .book-viewport {
     opacity: 0.7;
 }
 
-    .reel-thumbnail:hover {
-        filter: grayscale(0%);
-        opacity: 1;
-    }
+.reel-thumbnail:hover { filter: grayscale(0%); opacity: 1; }
+.reel-thumbnail.active { filter: grayscale(0%); border-color: #fff; opacity: 1; }
+.reel-thumbnail img, .reel-thumbnail video { width: auto; height: 100%; object-fit: contain; display: block; }
 
-    .reel-thumbnail.active {
-        filter: grayscale(0%);
-        border-color: #fff;
-        opacity: 1;
-    }
+.reel-thumbnail.is-placeholder {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: unset;
+    width: auto;
+    padding: 0 20px;
+}
 
-    .reel-thumbnail img,
-    .reel-thumbnail video {
-        width: auto;
-        height: 100%;
-        object-fit: contain;
-        display: block;
-    }
-
-    .reel-thumbnail.is-placeholder {
-        display: inline-flex;
-        justify-content: center;
-        align-items: center;
-        aspect-ratio: unset;
-        width: auto;
-        padding: 0 20px;
-    }
-
-        .reel-thumbnail.is-placeholder span {
-            color: #fff;
-            font-size: 0.8rem;
-            font-weight: bold;
-            padding: 5px;
-            text-align: center;
-            text-transform: uppercase;
-            font-family: Arial, sans-serif;
-        }
-
+.reel-thumbnail.is-placeholder span {
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: bold;
+    padding: 5px;
+    text-align: center;
+    text-transform: uppercase;
+    font-family: Arial, sans-serif;
+}
 
 .lightbox-dot {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #888; /* Šedivá */
+    background: #888;
     border: none;
     padding: 0;
     margin: 0 5px;
@@ -502,123 +530,55 @@ body.desktop-nav-closed .book-viewport {
     transition: background-color 0.2s ease;
 }
 
-    .lightbox-dot:hover {
-        background: #bbb;
-    }
+.lightbox-dot:hover { background: #bbb; }
+.lightbox-dot.active { background: #fff; }
 
-    .lightbox-dot.active {
-        background: #fff; /* Bílá */
-    }
-
-
-/* ===================================== */
-/* === RESPONZIVNÍ ÚPRAVY PRO MOBIL === */
-/* ===================================== */
-
+/* === RESPONZIVITA === */
 @media (orientation: portrait) {
+    .lightbox { padding-bottom: var(--reel-height-mobile); }
+    .lightbox.has-multiple-items #lightbox-reel { display: none; }
+    .lightbox.has-multiple-items #lightbox-dots { display: flex; }
+    .lightbox-item > .lightbox-media { max-width: calc(100vw - var(--lightbox-h-padding) * 2); max-height: calc(100vh - var(--reel-height-mobile) - var(--lightbox-v-padding-mobile) * 2); }
+    .lightbox-text-overlay { bottom: var(--reel-height-mobile); max-width: calc(100vw - var(--lightbox-h-padding) * 2); margin-bottom: 5px; }
+    .lightbox-item > .lightbox-text { max-width: 95vw; width: 95vw; font-size: 0.9rem; padding: 1.5rem; padding-bottom: 70px; max-height: calc(100vh - var(--reel-height-mobile) - var(--lightbox-v-padding-mobile) * 2); }
 
-    .lightbox {
-        /* Padding pro tečky na mobilu */
-        padding-bottom: var(--reel-height-mobile);
-    }
+    .book-viewport { margin-left: 0; width: 100%; }
+    .nav-arrow { top: auto; bottom: 80px; transform: translateY(0); }
+    .nav-arrow.left { left: 50%; transform: translateX(-120%); }
+    .nav-arrow.right { right: 50%; transform: translateX(120%); }
+    .lightbox-arrow { top: auto; bottom: 90px; z-index: 27000; }
+    .lightbox-text-overlay { bottom: 150px; max-width: calc(100vw - var(--lightbox-h-padding-mobile) * 2); }
+    .lightbox-item > .lightbox-media { max-width: calc(100vw - var(--lightbox-h-padding-mobile) * 2); }
 
-        /* === TOTO JE KLÍČOVÁ ZMĚNA === */
-        /* Skryjeme lištu a ukážeme tečky */
-        .lightbox.has-multiple-items #lightbox-reel {
-            display: none; /* <-- SKRÝT LIŠTU */
-        }
-
-        .lightbox.has-multiple-items #lightbox-dots {
-            display: flex; /* <-- ZOBRAZIT TEČKY */
-        }
-
-
-    /* Média na tabletu */
-    .lightbox-item > .lightbox-media {
-        max-width: calc( 100vw - var(--lightbox-h-padding) * 2 );
-        max-height: calc( 100vh - var(--reel-height-mobile) - var(--lightbox-v-padding-mobile) * 2 );
-    }
-
-    /* Text s popiskem (Tablet) */
-    .lightbox-text-overlay {
-        bottom: var(--reel-height-mobile); /* Nad tečky (80px) */
-        max-width: calc( 100vw - var(--lightbox-h-padding) * 2 );
-        margin-bottom: 5px;
-    }
-
-
-    /* Sólo text (Tablet) */
-    .lightbox-item > .lightbox-text {
-        max-width: 95vw;
-        width: 95vw;
-        font-size: 0.9rem;
-        padding: 1.5rem;
-        padding-bottom: 70px;
-        max-height: calc(100vh - var(--reel-height-mobile) - var(--lightbox-v-padding-mobile) * 2);
+    @media (max-height: 500px) {
+        .lightbox-arrow { top: 50%; bottom: auto; transform: translateY(-50%); }
+        .lightbox-text-overlay { bottom: var(--reel-height-mobile); margin-bottom: 5px; }
+        .lightbox-item > .lightbox-media { max-width: calc(100vw - var(--lightbox-h-padding) * 2); }
     }
 }
+/* ================================================= */
+/* === OPRAVA PŘEKRÝVÁNÍ NAVIGACE (FIX 2) === */
+/* ================================================= */
 
+/* 1. Hlavní kontejnery navigace vytáhneme úplně nahoru */
+#mobile-nav, #desktop-nav {
+    z-index: 22000 !important;
+}
 
-@media (orientation: portrait) {
-    .book-viewport {
-        margin-left: 0;
-        width: 100%;
-    }
+/* 2. Obsah menu (texty) */
+.mobile-nav-content, .desktop-nav-content {
+    z-index: 22001 !important;
+}
 
-    .nav-arrow {
-        top: auto;
-        bottom: 80px;
-        transform: translateY(0);
-    }
+/* 3. DŮLEŽITÉ: Tlačítka (šipky) pro zavření musí být ÚPLNĚ NEJVÝŠ */
+.desktop-toggle-btn, 
+.mobile-toggle-btn {
+    z-index: 22002 !important;
+    position: absolute; /* Pojistka, aby z-index fungoval */
+}
 
-        .nav-arrow.left {
-            left: 50%;
-            transform: translateX(-120%);
-        }
-
-        .nav-arrow.right {
-            right: 50%;
-            transform: translateX(120%);
-        }
-
-    .lightbox-arrow {
-        top: auto;
-        /* Posunuto níže - tečky mají 80px, šipka je 10px nad nimi */
-        bottom: 90px;
-        z-index: 27000;
-    }
-
-    /* Text s popiskem (Telefon) */
-    .lightbox-text-overlay {
-        /* Posunuto nad šipky (které jsou na 90px) */
-        bottom: 150px;
-        max-width: calc( 100vw - var(--lightbox-h-padding-mobile) * 2 );
-    }
-
-
-    /* Média na telefonu (malé odsazení) */
-    .lightbox-item > .lightbox-media {
-        max-width: calc( 100vw - var(--lightbox-h-padding-mobile) * 2 );
-    }
-
-
-    /* Zvláštní případ: Nízká obrazovka (landscape mobil) */
-    @media (max-height: 500px) {
-        .lightbox-arrow {
-            top: 50%;
-            bottom: auto;
-            transform: translateY(-50%);
-        }
-
-        /* Text s popiskem se vrací nad tečky */
-        .lightbox-text-overlay {
-            bottom: var(--reel-height-mobile); /* 80px */
-            margin-bottom: 5px;
-        }
-
-        /* Média musí mít zpět velké odsazení, aby nebyly pod šipkami */
-        .lightbox-item > .lightbox-media {
-            max-width: calc( 100vw - var(--lightbox-h-padding) * 2 );
-        }
-    }
+/* 4. Horní lišta dema (Knížka/O knížce) zůstane pod tím */
+.demo-nav {
+    position: relative;
+    z-index: 500; 
 }
