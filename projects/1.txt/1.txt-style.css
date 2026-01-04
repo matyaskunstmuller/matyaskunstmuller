@@ -28,6 +28,7 @@ html, body {
     margin-left: var(--nav-width);
     width: calc(100% - var(--nav-width));
     height: 100vh;
+     height: 100dvh;
     transition: margin-left var(--nav-transition-speed) ease-in-out;
     position: relative;
     /* Ponecháváme flex pro centrování knihy */

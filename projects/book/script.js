@@ -1,3 +1,15 @@
+// ... (Začátek souboru beze změny)
+let instructionsHidden = false;
+
+function hideInstructions() {
+    if (instructionsHidden) return;
+    const instructionPage = document.getElementById('instruction-page');
+    if (instructionPage) {
+        instructionPage.classList.add('hidden');
+        instructionsHidden = true;
+    }
+}
+
 // =================================================================
 //  KONFIGURACE A GLOBÁLNÍ PROMĚNNÉ
 // =================================================================
@@ -6,29 +18,49 @@ const CONFIG = {
     snapDuration: 350,
     wheelSensitivity: 0.0025,
     touchSwipeThreshold: 10,
-    lightboxAnimDuration: 250,
-    // OPTIMALIZACE: Kolik stran dopředu/dozadu držet načtených
-    imageLoadBuffer: 2, 
-    // OPTIMALIZACE: Videa načítat jen pro aktuální spread (šetří drasticky výkon)
-    videoLoadBuffer: 0 
+    lightboxAnimDuration: 250
 };
 
-// Definice, kde jsou videa
 const mediaOverlays = {
     1: { right: 'assets/ome.webm' },
     2: { right: 'assets/S3B-2_overlay.webm' },
     3: { right: 'assets/360-2_overlay.webm' },
-    4: { left: 'assets/Piktogramy pro školu-1_overlay.webm', right: 'assets/Piktogramy pro školu-2_overlay.webm' },
-    5: { left: 'assets/bertik_1_overlay.webm', right: 'assets/bertik_2_overlay.webm' },
-    6: { left: 'assets/busking a ztohoven-1_overlay.webm', right: 'assets/ztohoven_overlay.webm' },
+    
+    // Piktogramy (Spread 4)
+    4: { 
+        left: 'assets/Piktogramy pro školu-1_overlay.webm', 
+        right: 'assets/Piktogramy pro školu-2_overlay.webm' 
+    },
+    // Bertik
+    5: { 
+        left: 'assets/bertik_1_overlay.webm', 
+        right: 'assets/bertik_2_overlay.webm' 
+    },
+    // Motion (Spread 6)
+    6: { 
+        left: 'assets/busking a ztohoven-1_overlay.webm', 
+        right: 'assets/ztohoven_overlay.webm' 
+    },
+
     7: { right: 'assets/Typotrip-2_overlay.webm' },
+
     8: { right: 'assets/blokkada_overlay.webm' },
+    
+    // City Smog
     10: { right: 'assets/city smog-2_overlay.webm' }, 
+    
+    // 1.TXT
     11: { right: 'assets/1-txt-2_overlay_1.webm' }, 
-    12: { left: 'assets/skicaky_1_overlay.webm', right: 'assets/skicaky_2_overlay.webm' }, 
+
+    // Skicaky
+    12: {
+        left: 'assets/skicaky_1_overlay.webm', 
+        right: 'assets/skicaky_2_overlay.webm' 
+    }, 
 };
 
 const book = document.getElementById('book');
+const bookViewport = document.querySelector('.book-viewport');
 const slider = document.getElementById('pageSlider');
 const interactiveLayer = document.getElementById('interactive-layer');
 const lightbox = document.getElementById('lightbox');
@@ -38,11 +70,13 @@ const lightboxNextBtn = document.getElementById('lightboxNext');
 const lightboxReel = document.getElementById('lightbox-reel');
 const papers = Array.from(document.querySelectorAll('.paper'));
 
+
 const state = {
     currentSpread: 0,
     maxSpread: papers.length,
     isAnimating: false,
     touchStartX: null,
+    touchStartY: null,
 };
 
 let galleryItems = [];
@@ -51,148 +85,66 @@ let spreadItems = [];
 let currentSpreadItemIndex = 0;
 let isLightboxAnimating = false;
 
-// Mapa pro navigaci
 const SPREAD_TO_NAV_ID_MAP = {
-    2: 'portfolio-s2', 3: 'portfolio-s3', 4: 'portfolio-s4', 5: 'portfolio-s5',
-    6: 'portfolio-s6', 7: 'portfolio-s7', 8: 'portfolio-s8', 9: 'portfolio-s9',   
-    10: 'portfolio-s10', 11: 'portfolio-s11', 12: 'portfolio-s12', 13: 'portfolio-s13', 14: 'portfolio-s14'
+    2: 'portfolio-s2', 
+    3: 'portfolio-s3', 
+    4: 'portfolio-s4', 
+    5: 'portfolio-s5',
+    6: 'portfolio-s6', 
+    7: 'portfolio-s7', 
+    8: 'portfolio-s8', 
+    9: 'portfolio-s9',   
+    10: 'portfolio-s10', 
+    11: 'portfolio-s11', 
+    12: 'portfolio-s12', 
+    13: 'portfolio-s13', 
+    14: 'portfolio-s14'
 };
 
-// --- OPTIMALIZACE 1: SPRÁVA ZDROJŮ (Načítání a mazání) ---
+function preloadLocalVideo(src) {
+    const srcParts = src.split('.');
+    const extension = srcParts[srcParts.length - 1].toLowerCase();
+    if (src.startsWith('http') || extension === 'vimeo') {
+        return;
+    }
+    fetch(src, { mode: 'no-cors', cache: 'force-cache' })
+        .then(response => { })
+        .catch(err => console.warn('Preload failed:', err));
+}
 
-function manageResources(currentSpread) {
-    const spreadIndex = Math.floor(currentSpread);
+// === NOVÉ: CHYTRÉ NAČÍTÁNÍ OBRÁZKŮ (Lazy Loading) ===
+function managePageLoading(currentSpread) {
+    // Načte stránky v rozsahu: aktuální +/- 5 stran
+    const buffer = 5; 
+    const start = Math.max(0, Math.floor(currentSpread) - buffer);
+    const end = Math.min(papers.length, Math.floor(currentSpread) + buffer);
 
-    // 1. Načtení OBRÁZKŮ (širší buffer)
-    const imgStart = Math.max(0, spreadIndex - CONFIG.imageLoadBuffer);
-    const imgEnd = Math.min(papers.length, spreadIndex + CONFIG.imageLoadBuffer + 1);
-
-    for (let i = 0; i < papers.length; i++) {
+    for (let i = start; i < end; i++) {
         const paper = papers[i];
+        if (!paper) continue;
+
+        // Najdeme obrázky, které mají 'data-src'
         const lazyImages = paper.querySelectorAll('img[data-src]');
         
-        if (i >= imgStart && i < imgEnd) {
-            // Jsme v zóně -> Načíst
-            lazyImages.forEach(img => {
-                if (img.dataset.src) {
-                    img.src = img.dataset.src;
-                    img.removeAttribute('data-src'); // Už nenačítat znovu
-                }
-            });
-        }
-    }
-
-    // 2. Správa VIDEÍ (velmi úzký buffer - jen to, co vidím)
-    // Projdeme definici mediaOverlays a rozhodneme, co vytvořit a co smazat
-    for (const [spreadKey, overlays] of Object.entries(mediaOverlays)) {
-        const sKey = parseInt(spreadKey);
-        // Video načteme, jen pokud jsme přímo na spreadu nebo těsně vedle
-        const shouldLoadVideo = Math.abs(sKey - spreadIndex) <= CONFIG.videoLoadBuffer;
-
-        if (shouldLoadVideo) {
-            // Vytvořit video, pokud neexistuje
-            createVideoOverlay(sKey, overlays.left, 'left');
-            createVideoOverlay(sKey, overlays.right, 'right');
-        } else {
-            // Odstranit video, aby nežralo paměť
-            removeVideoOverlay(sKey, 'left');
-            removeVideoOverlay(sKey, 'right');
-        }
+        lazyImages.forEach(img => {
+            // Přehodíme cestu z data-src do src -> prohlížeč začne stahovat
+            img.src = img.dataset.src;
+            img.removeAttribute('data-src');
+        });
     }
 }
-
-function createVideoOverlay(spreadNum, src, side) {
-    if (!src) return;
-    
-    // Určení kontejneru podle strany
-    let containerSelector;
-    if (side === 'right') {
-        containerSelector = `#p${spreadNum} .front .page-image-wrapper`;
-    } else {
-        const prevPaperIndex = parseInt(spreadNum) - 1;
-        containerSelector = `#p${prevPaperIndex} .back .page-image-wrapper`;
-    }
-
-    const container = document.querySelector(containerSelector);
-    if (!container) return;
-
-    // Pokud už tam video je, neděláme nic
-    if (container.querySelector(`.media-overlay-${side}`)) return;
-
-    const vid = document.createElement("video");
-    vid.className = `media-overlay media-overlay-${side}`; // Přidáme třídu pro identifikaci
-    vid.style.objectFit = "fill"; // Aby sedělo přesně
-    vid.style.position = "absolute";
-    vid.style.top = "0";
-    vid.style.left = "0";
-    vid.style.width = "100%";
-    vid.style.height = "100%";
-    
-    // Důležité pro výkon
-    vid.preload = "auto";
-    vid.muted = true;
-    vid.loop = true;
-    vid.playsInline = true;
-    vid.src = src;
-
-    // Play až po načtení
-    vid.oncanplay = () => {
-        vid.play().catch(() => {});
-    };
-
-    container.appendChild(vid);
-}
-
-function removeVideoOverlay(spreadNum, side) {
-    let containerSelector;
-    if (side === 'right') {
-        containerSelector = `#p${spreadNum} .front .page-image-wrapper`;
-    } else {
-        const prevPaperIndex = parseInt(spreadNum) - 1;
-        containerSelector = `#p${prevPaperIndex} .back .page-image-wrapper`;
-    }
-
-    const container = document.querySelector(containerSelector);
-    if (!container) return;
-
-    const vid = container.querySelector(`.media-overlay-${side}`);
-    if (vid) {
-        vid.pause();
-        vid.removeAttribute('src'); // Uvolnění z paměti
-        vid.load();
-        vid.remove();
-    }
-}
-
-// --- Zbytek logiky knihy ---
 
 function updateBook(spread) {
     papers.forEach((paper, index) => {
         const progress = Math.max(0, Math.min(1, spread - index));
         const rotation = -progress * 180;
         paper.style.transform = `rotateY(${rotation}deg)`;
-        
-        // Optimalizace z-indexu
-        let zIndex;
-        if (spread > index) {
-            zIndex = index; // Stránky vlevo
-        } else {
-            zIndex = state.maxSpread - index; // Stránky vpravo
-        }
-        paper.style.zIndex = zIndex;
-        
-        // Skrývání neviditelných stránek pro výkon (visibility: hidden)
-        // Pokud je stránka úplně otočená nebo úplně neotočená a je hluboko v balíku
-        const dist = Math.abs(spread - index);
-        if (dist > 2) {
-             paper.style.visibility = 'hidden';
-        } else {
-             paper.style.visibility = 'visible';
-        }
+        paper.style.zIndex = spread > index ? index : state.maxSpread - index;
     });
-
     renderButtons(Math.floor(spread));
-    manageResources(spread); // Volání optimalizátoru
+
+    // === ZDE VOLÁME NAČÍTÁNÍ OBRÁZKŮ ===
+    managePageLoading(spread);
 }
 
 function renderButtons(spread) {
@@ -214,10 +166,335 @@ function renderButtons(spread) {
                     openLightbox(galleryIndex);
                 });
             }
+            if (data.mediaSrc) {
+                element.addEventListener('mouseenter', () => {
+                    preloadLocalVideo(data.mediaSrc);
+                }, { once: true });
+            }
         }
         Object.assign(element.style, data.styles);
         interactiveLayer.appendChild(element);
     });
+}
+
+function openLightbox(index) {
+    const clickedItem = galleryItems[index];
+    if (!clickedItem) return;
+    const targetSpread = clickedItem.spread;
+    lightbox.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    lightboxPrevBtn.style.display = 'block';
+    lightboxNextBtn.style.display = 'block';
+    const currentBookSpread = Math.round(parseFloat(slider.value));
+    if (targetSpread !== currentBookSpread) {
+        animateTo(
+            parseFloat(slider.value),
+            targetSpread,
+            CONFIG.animationDuration,
+            () => loadSpreadItems(targetSpread, clickedItem)
+        );
+    } else {
+        loadSpreadItems(targetSpread, clickedItem);
+    }
+}
+
+function closeLightbox() {
+    lightbox.classList.remove('show');
+    document.body.style.overflow = '';
+    lightboxStage.innerHTML = '';
+    lightboxReel.innerHTML = '';
+    document.getElementById('lightbox-dots').innerHTML = '';
+    const overlayTexts = lightbox.querySelectorAll('.lightbox-text-overlay');
+    overlayTexts.forEach(el => el.remove());
+    lightbox.classList.remove('has-multiple-items');
+    spreadItems = [];
+    currentSpreadItemIndex = 0;
+}
+
+function setCurrentSpreadItem(index) {
+    if (index < 0 || index >= spreadItems.length) {
+        console.warn(`Index ${index} je mimo rozsah.`);
+        return;
+    }
+    currentSpreadItemIndex = index;
+    updateLightboxView();
+}
+
+function loadSpreadItems(spread, itemToSelect = null) {
+    lightboxStage.innerHTML = '';
+    lightboxReel.innerHTML = '';
+    document.getElementById('lightbox-dots').innerHTML = '';
+    const oldOverlayTexts = lightbox.querySelectorAll('.lightbox-text-overlay');
+    oldOverlayTexts.forEach(el => el.remove());
+    spreadItems = [];
+    currentSpreadItemIndex = 0;
+    const itemsForSpread = galleryItems.filter(item => item.spread === spread);
+    itemsForSpread.forEach((itemData, index) => {
+        const itemWrapper = document.createElement('div');
+        itemWrapper.className = 'lightbox-item';
+        let mediaElement = null;
+        let textElement = null;
+        let overlayTextElement = null;
+        if (itemData.mediaSrc) {
+            let mediaType = '';
+            let videoId = '';
+            let mediaSrcPath = itemData.mediaSrc;
+            const showControls = itemData.mediaControls === true;
+            if (mediaSrcPath.startsWith('http')) {
+                try {
+                    const url = new URL(mediaSrcPath);
+                    if (url.hostname.includes('vimeo.com')) {
+                        mediaType = 'vimeo';
+                        videoId = url.pathname.substring(1).split('/')[0];
+                    } else {
+                        const extension = url.pathname.split('.').pop().toLowerCase();
+                        if (['mp4', 'webm', 'gif'].includes(extension)) mediaType = 'localVideo';
+                        else if (['jpg', 'jpeg', 'png', 'webp', 'svg'].includes(extension)) mediaType = 'image';
+                    }
+                } catch (e) { console.error(`Chybná URL v buttons.js: ${mediaSrcPath}`, e); }
+            } else {
+                const srcParts = mediaSrcPath.split('.');
+                const extension = srcParts[srcParts.length - 1].toLowerCase();
+                if (extension === 'vimeo') {
+                    mediaType = extension;
+                    videoId = mediaSrcPath.split('_').pop().split('.')[0];
+                } else if (['mp4', 'webm', 'gif'].includes(extension)) {
+                    mediaType = 'localVideo';
+                } else {
+                    mediaType = 'image';
+                }
+            }
+            if (mediaType === 'vimeo') {
+                mediaElement = document.createElement('iframe');
+                let vimeoSrc = `https://player.vimeo.com/video/${videoId}?autoplay=1&loop=1&autopause=0&muted=1`;
+                vimeoSrc += showControls ? '&controls=1' : '&controls=0';
+                if (itemData === itemToSelect || index === 0) mediaElement.src = vimeoSrc;
+                mediaElement.dataset.src = vimeoSrc;
+                Object.assign(mediaElement, { frameborder: '0', allow: 'autoplay; fullscreen; picture-in-picture', allowfullscreen: true });
+            } else if (mediaType === 'localVideo') {
+                mediaElement = document.createElement('video');
+                mediaElement.src = mediaSrcPath;
+                mediaElement.dataset.src = mediaSrcPath;
+                const videoProps = { autoplay: false, loop: true, muted: true, playsInline: true, controls: showControls, preload: 'auto' };
+                Object.assign(mediaElement, videoProps);
+            } else if (mediaType === 'image') {
+                mediaElement = document.createElement('img');
+                mediaElement.src = mediaSrcPath;
+            }
+            if (mediaElement) mediaElement.className = 'lightbox-media';
+        }
+        if (itemData.text) {
+            if (mediaElement) {
+                overlayTextElement = document.createElement('div');
+                overlayTextElement.className = 'lightbox-text-overlay';
+                overlayTextElement.innerHTML = itemData.text.replace(/\n/g, '<br>');
+                overlayTextElement.dataset.index = index;
+            } else {
+                textElement = document.createElement('div');
+                textElement.className = 'lightbox-text';
+                textElement.innerHTML = itemData.text.replace(/\n/g, '<br>');
+            }
+        }
+        if (mediaElement) itemWrapper.appendChild(mediaElement);
+        else if (textElement) itemWrapper.appendChild(textElement);
+        if (mediaElement || textElement) {
+            lightboxStage.appendChild(itemWrapper);
+            spreadItems.push(itemWrapper);
+            if (itemData === itemToSelect) currentSpreadItemIndex = index;
+        }
+        if (overlayTextElement) lightbox.appendChild(overlayTextElement);
+        if (mediaElement || textElement) {
+            const thumb = document.createElement('button');
+            thumb.className = 'reel-thumbnail';
+            thumb.dataset.index = index;
+            thumb.setAttribute('aria-label', `Zobrazit položku ${index + 1}`);
+            if (itemData.mediaSrc) {
+                let thumbMediaType = '';
+                const mediaSrc = itemData.mediaSrc;
+                if (mediaSrc.startsWith('http')) {
+                    if (mediaSrc.includes('vimeo.com')) thumbMediaType = 'vimeo';
+                    else {
+                        const ext = mediaSrc.split('.').pop().toLowerCase();
+                        if (['mp4', 'webm', 'gif'].includes(ext)) thumbMediaType = 'localVideo';
+                        else if (['jpg', 'jpeg', 'png', 'webp', 'svg'].includes(ext)) thumbMediaType = 'image';
+                    }
+                } else {
+                    const ext = mediaSrc.split('.').pop().toLowerCase();
+                    if (ext === 'vimeo') thumbMediaType = ext;
+                    else if (['mp4', 'webm', 'gif'].includes(ext)) thumbMediaType = 'localVideo';
+                    else thumbMediaType = 'image';
+                }
+                if (thumbMediaType === 'image') {
+                    const img = document.createElement('img');
+                    img.src = mediaSrc;
+                    img.alt = `Náhled ${index + 1}`;
+                    thumb.appendChild(img);
+                } else if (thumbMediaType === 'localVideo') {
+                    const vid = document.createElement('video');
+                    vid.src = mediaSrc;
+                    Object.assign(vid, { muted: true, preload: "metadata", disablePictureInPicture: true, playsInline: true });
+                    thumb.appendChild(vid);
+                } else if (thumbMediaType === 'vimeo') {
+                    thumb.innerHTML = '<span>VIDEO</span>';
+                    thumb.classList.add('is-placeholder');
+                }
+            } else if (itemData.text) {
+                thumb.innerHTML = '<span>TEXT</span>';
+                thumb.classList.add('is-placeholder');
+            }
+            thumb.addEventListener('click', () => setCurrentSpreadItem(index));
+            lightboxReel.appendChild(thumb);
+        }
+    });
+    const dotsContainer = document.getElementById('lightbox-dots');
+    dotsContainer.innerHTML = '';
+    if (spreadItems.length > 1) {
+        spreadItems.forEach((_, index) => {
+            const dot = document.createElement('button');
+            dot.className = 'lightbox-dot';
+            dot.dataset.index = index;
+            dot.setAttribute('aria-label', `Zobrazit položku ${index + 1}`);
+            dot.addEventListener('click', () => setCurrentSpreadItem(index));
+            dotsContainer.appendChild(dot);
+        });
+    }
+    if (spreadItems.length > 1) lightbox.classList.add('has-multiple-items');
+    else lightbox.classList.remove('has-multiple-items');
+    updateLightboxView();
+}
+
+function updateLightboxView() {
+    if (spreadItems.length === 0) return;
+    const prevIndex = (currentSpreadItemIndex - 1 + spreadItems.length) % spreadItems.length;
+    const nextIndex = (currentSpreadItemIndex + 1) % spreadItems.length;
+    spreadItems.forEach((item, index) => {
+        item.classList.remove('active', 'prev', 'next');
+        const video = item.querySelector('video');
+        const iframe = item.querySelector('iframe');
+        if (index === currentSpreadItemIndex) {
+            item.classList.add('active');
+            if (video) video.play().catch(e => console.log("Autoplay byl zablokován prohlížečem."));
+            if (iframe) {
+                const currentSrc = iframe.dataset.src;
+                if (currentSrc && iframe.src !== currentSrc) iframe.src = currentSrc;
+            }
+        } else if (index === prevIndex && spreadItems.length > 1) {
+            item.classList.add('prev');
+            if (video) video.pause();
+            if (iframe) iframe.src = '';
+        } else if (index === nextIndex && spreadItems.length > 1) {
+            item.classList.add('next');
+            if (video) video.pause();
+            if (iframe) iframe.src = '';
+        } else {
+            if (video) video.pause();
+            if (iframe) iframe.src = '';
+        }
+    });
+    const thumbnails = document.querySelectorAll('.reel-thumbnail');
+    thumbnails.forEach((thumb, index) => {
+        if (index === currentSpreadItemIndex) {
+            thumb.classList.add('active');
+            thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        } else {
+            thumb.classList.remove('active');
+        }
+    });
+    const dots = document.querySelectorAll('.lightbox-dot');
+    dots.forEach((dot, index) => {
+        if (index === currentSpreadItemIndex) dot.classList.add('active');
+        else dot.classList.remove('active');
+    });
+    const overlayTexts = lightbox.querySelectorAll('.lightbox-text-overlay');
+    overlayTexts.forEach(textEl => {
+        const textIndex = parseInt(textEl.dataset.index, 10);
+        if (textIndex === currentSpreadItemIndex) textEl.classList.add('active');
+        else textEl.classList.remove('active');
+    });
+}
+
+function changeSpreadItem(direction) {
+    if (isLightboxAnimating || spreadItems.length <= 1) return;
+    isLightboxAnimating = true;
+    currentSpreadItemIndex = (currentSpreadItemIndex + direction + spreadItems.length) % spreadItems.length;
+    updateLightboxView();
+    setTimeout(() => { isLightboxAnimating = false; }, CONFIG.lightboxAnimDuration);
+}
+
+function setupEventListeners() {
+    slider.addEventListener('input', () => updateBook(parseFloat(slider.value)));
+    slider.addEventListener('change', () => {
+        const currentValue = parseFloat(slider.value);
+        const targetSpread = Math.round(currentValue);
+        if (Math.abs(currentValue - targetSpread) > 0.001) {
+            animateTo(currentValue, targetSpread, CONFIG.snapDuration);
+        }
+    });
+
+    document.getElementById('arrowLeft').addEventListener('click', () => changeSpread(-1));
+    document.getElementById('arrowRight').addEventListener('click', () => changeSpread(1));
+
+    document.addEventListener('keydown', (event) => {
+        if (lightbox.classList.contains('show')) {
+            if (event.key === 'ArrowLeft') findNextSpreadWithItems(-1);
+            if (event.key === 'ArrowRight') findNextSpreadWithItems(1);
+            if (event.key === 'ArrowUp') changeSpreadItem(-1);
+            if (event.key === 'ArrowDown') changeSpreadItem(1);
+            if (event.key === 'Escape') closeLightbox();
+        } else {
+            if (event.key === 'ArrowLeft') changeSpread(-1);
+            if (event.key === 'ArrowRight') changeSpread(1);
+        }
+    });
+
+    window.addEventListener('hashchange', () => {
+        const hash = location.hash;
+        let targetSpread = 0;
+        if (hash.startsWith('#spread=')) {
+            targetSpread = parseInt(hash.substring(8), 10);
+            if (isNaN(targetSpread)) targetSpread = 0;
+        }
+        if (Math.abs(parseFloat(slider.value) - targetSpread) > 0.01) {
+            animateTo(parseFloat(slider.value), targetSpread, CONFIG.animationDuration);
+        }
+    });
+
+    setupLightboxControls();
+    setupWheel();
+    setupTouchGestures();
+}
+
+function findNextSpreadWithItems(direction) {
+    if (state.isAnimating || spreadsWithItems.length === 0) return;
+    const currentBookSpread = Math.round(parseFloat(slider.value));
+    let currentSpreadIndex = spreadsWithItems.indexOf(currentBookSpread);
+    let nextSpreadIndex;
+    if (currentSpreadIndex === -1) {
+        if (direction > 0) {
+            nextSpreadIndex = spreadsWithItems.findIndex(s => s > currentBookSpread);
+            if (nextSpreadIndex === -1) nextSpreadIndex = 0;
+        } else {
+            const reversedIndex = [...spreadsWithItems].reverse().findIndex(s => s < currentBookSpread);
+            if (reversedIndex === -1) nextSpreadIndex = spreadsWithItems.length - 1;
+            else nextSpreadIndex = spreadsWithItems.length - 1 - reversedIndex;
+        }
+    } else {
+        nextSpreadIndex = (currentSpreadIndex + direction + spreadsWithItems.length) % spreadsWithItems.length;
+    }
+    const targetSpread = spreadsWithItems[nextSpreadIndex];
+    if (targetSpread !== currentBookSpread) {
+        loadSpreadItems(targetSpread, null);
+        animateTo(parseFloat(slider.value), targetSpread, CONFIG.animationDuration, null);
+    }
+}
+
+function changeSpread(delta) {
+    if (state.isAnimating) return;
+    const current = Math.round(parseFloat(slider.value));
+    const target = Math.max(0, Math.min(state.maxSpread, current + delta));
+    if (current !== target) {
+        animateTo(parseFloat(slider.value), target, CONFIG.animationDuration);
+    }
 }
 
 function animateTo(start, end, duration, onCompleteCallback = null) {
@@ -248,197 +525,172 @@ function animateTo(start, end, duration, onCompleteCallback = null) {
             }
 
             const activeNavID = SPREAD_TO_NAV_ID_MAP[roundedEnd] || 'portfolio';
-            if (typeof createNav === 'function') {
-                 createNav('../../', activeNavID);
-            }
+            createNav('../../', activeNavID);
 
-            if (onCompleteCallback) onCompleteCallback();
+            if (onCompleteCallback) {
+                onCompleteCallback();
+            }
         }
     };
     requestAnimationFrame(frame);
 }
 
-// --- LIGHTBOX FUNKCE (Zůstávají stejné, jen zkrácené pro přehlednost) ---
-function openLightbox(index) {
-    const clickedItem = galleryItems[index];
-    if (!clickedItem) return;
-    const targetSpread = clickedItem.spread;
-    lightbox.classList.add('show');
-    document.body.style.overflow = 'hidden';
-    
-    // Načíst obsah spreadu
-    loadSpreadItems(targetSpread, clickedItem);
-}
-
-function closeLightbox() {
-    lightbox.classList.remove('show');
-    document.body.style.overflow = '';
-    lightboxStage.innerHTML = '';
-    lightboxReel.innerHTML = '';
-    spreadItems = [];
-}
-
-function loadSpreadItems(spread, itemToSelect = null) {
-    // ... (Zde vložte původní kód loadSpreadItems, pokud ho potřebujete detailně, 
-    // ... ale pro optimalizaci načítání knihy to není kritické. 
-    // ... Použijte původní funkci z vašeho script.js, ta byla v pořádku.)
-    
-    // PRO ÚČELY TOHOTO FIXU POUŽIJTE PŮVODNÍ FUNKCI loadSpreadItems Z PŘEDCHOZÍHO SOUBORU
-    // TATO ČÁST SE NEMĚNÍ
-    
-    // Zde je zkrácená verze pro kontext:
-    lightboxStage.innerHTML = '';
-    lightboxReel.innerHTML = '';
-    spreadItems = [];
-    currentSpreadItemIndex = 0;
-    const itemsForSpread = galleryItems.filter(item => item.spread === spread);
-    
-    itemsForSpread.forEach((itemData, index) => {
-        // ... (Logika vytváření elementů lightboxu zůstává beze změny)
-        // ...
-        // ...
-        // Je důležité sem zkopírovat tělo funkce z vašeho původního souboru, 
-        // protože jsem ho zde neupravoval (nebyl zdrojem zpomalení startu).
-        
-        // Zástupná implementace pro ukázku (nahraďte svou plnou verzí):
-        const itemWrapper = document.createElement('div');
-        itemWrapper.className = 'lightbox-item';
-        // ... logika media/text ...
-        if (itemData.mediaSrc) {
-             const img = document.createElement('img');
-             img.src = itemData.mediaSrc;
-             img.className = 'lightbox-media';
-             itemWrapper.appendChild(img);
-        }
-        lightboxStage.appendChild(itemWrapper);
-        spreadItems.push(itemWrapper);
-        if (itemData === itemToSelect) currentSpreadItemIndex = index;
-    });
-    updateLightboxView();
-}
-
-function updateLightboxView() {
-    spreadItems.forEach((item, index) => {
-        item.classList.remove('active', 'prev', 'next');
-        if (index === currentSpreadItemIndex) item.classList.add('active');
-    });
-}
-
-function setCurrentSpreadItem(index) {
-    currentSpreadItemIndex = index;
-    updateLightboxView();
-}
-
-// --- EVENT LISTENERS ---
-function setupEventListeners() {
-    slider.addEventListener('input', () => updateBook(parseFloat(slider.value)));
-    slider.addEventListener('change', () => {
-        const val = parseFloat(slider.value);
-        animateTo(val, Math.round(val), CONFIG.snapDuration);
-    });
-
-    document.getElementById('arrowLeft').addEventListener('click', () => changeSpread(-1));
-    document.getElementById('arrowRight').addEventListener('click', () => changeSpread(1));
-    document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
-    
-    // Klávesnice
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') changeSpread(-1);
-        if (e.key === 'ArrowRight') changeSpread(1);
-        if (e.key === 'Escape') closeLightbox();
-    });
-
-    // Hash change
-    window.addEventListener('hashchange', () => {
-        const hash = location.hash;
-        if (hash.startsWith('#spread=')) {
-            const s = parseInt(hash.substring(8), 10);
-            if (!isNaN(s)) animateTo(parseFloat(slider.value), s, CONFIG.animationDuration);
-        }
-    });
-    
-    // Touch & Wheel (Zjednodušeno)
-    setupWheel();
-    setupTouchGestures();
-}
-
-function changeSpread(delta) {
-    if (state.isAnimating) return;
-    const current = Math.round(parseFloat(slider.value));
-    const target = Math.max(0, Math.min(state.maxSpread, current + delta));
-    if (current !== target) animateTo(parseFloat(slider.value), target, CONFIG.animationDuration);
-}
-
 function setupWheel() {
     let wheelAccumulator = 0;
     let isWheelAnimating = false;
-    const bookViewport = document.querySelector('.book-viewport');
-    
     bookViewport.addEventListener('wheel', event => {
         event.preventDefault();
         wheelAccumulator += event.deltaY * CONFIG.wheelSensitivity;
         if (!isWheelAnimating) {
             isWheelAnimating = true;
-            requestAnimationFrame(function animateWheel() {
-                if (Math.abs(wheelAccumulator) < 0.001) {
-                    isWheelAnimating = false;
-                    const target = Math.round(parseFloat(slider.value));
-                    animateTo(parseFloat(slider.value), target, CONFIG.snapDuration);
-                    return;
-                }
-                const current = parseFloat(slider.value);
-                const step = wheelAccumulator * 0.15;
-                wheelAccumulator -= step;
-                const nextVal = Math.max(0, Math.min(state.maxSpread, current + step));
-                slider.value = nextVal;
-                updateBook(nextVal);
-                requestAnimationFrame(animateWheel);
-            });
+            animateWheel();
         }
     }, { passive: false });
+
+    function animateWheel() {
+        if (Math.abs(wheelAccumulator) < 0.001) {
+            isWheelAnimating = false;
+            const target = Math.round(parseFloat(slider.value));
+            animateTo(parseFloat(slider.value), target, CONFIG.snapDuration);
+            return;
+        }
+        const current = parseFloat(slider.value);
+        const step = wheelAccumulator * 0.15;
+        wheelAccumulator -= step;
+        const nextVal = Math.max(0, Math.min(state.maxSpread, current + step));
+        slider.value = nextVal;
+        updateBook(nextVal);
+        requestAnimationFrame(animateWheel);
+    }
 }
 
 function setupTouchGestures() {
-    const bookViewport = document.querySelector('.book-viewport');
-    bookViewport.addEventListener('touchstart', (e) => { state.touchStartX = e.changedTouches[0].screenX; }, { passive: true });
-    bookViewport.addEventListener('touchend', (e) => {
+    bookViewport.addEventListener('touchstart', (event) => {
+        state.touchStartX = event.changedTouches[0].screenX;
+    }, { passive: true });
+    bookViewport.addEventListener('touchend', (event) => {
         if (state.touchStartX === null) return;
-        const deltaX = e.changedTouches[0].screenX - state.touchStartX;
-        if (Math.abs(deltaX) > CONFIG.touchSwipeThreshold) changeSpread(deltaX < 0 ? 1 : -1);
+        const touchEndX = event.changedTouches[0].screenX;
+        const deltaX = touchEndX - state.touchStartX;
+        if (Math.abs(deltaX) > CONFIG.touchSwipeThreshold) {
+            changeSpread(deltaX < 0 ? 1 : -1);
+        }
         state.touchStartX = null;
     });
 }
 
-function wrapPageImages() { 
-    document.querySelectorAll(".page-image").forEach(e => { 
-        const t = document.createElement("div"); 
-        t.className = "page-image-wrapper"; 
-        e.parentNode.insertBefore(t, e); 
-        t.appendChild(e); 
-    }); 
+function setupLightboxWheel() {
+    let isWheeling = false;
+    let wheelGestureTimeout = null;
+    const WHEEL_GESTURE_END_DELAY = 50;
+    lightbox.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        if (wheelGestureTimeout) clearTimeout(wheelGestureTimeout);
+        wheelGestureTimeout = setTimeout(() => { isWheeling = false; wheelGestureTimeout = null; }, WHEEL_GESTURE_END_DELAY);
+        if (!isWheeling && !isLightboxAnimating && !state.isAnimating) {
+            const deltaY = e.deltaY, deltaX = e.deltaX, absY = Math.abs(deltaY), absX = Math.abs(deltaX), threshold = 1;
+            if (absY > absX && absY > threshold) {
+                isWheeling = true;
+                if (deltaY > threshold) changeSpreadItem(1);
+                else if (deltaY < -threshold) changeSpreadItem(-1);
+                else isWheeling = false;
+            }
+        }
+    }, { passive: false });
 }
 
-// MAIN INIT
+function setupLightboxTouchGestures() {
+    lightbox.addEventListener('touchmove', (event) => { event.preventDefault(); }, { passive: false });
+    lightboxStage.addEventListener('touchstart', (event) => {
+        state.touchStartX = event.changedTouches[0].screenX;
+        state.touchStartY = event.changedTouches[0].screenY;
+    }, { passive: true });
+    lightboxStage.addEventListener('touchend', (event) => {
+        if (state.touchStartX === null || state.touchStartY === null) {
+            state.touchStartX = null;
+            state.touchStartY = null;
+            return;
+        }
+        const touchEndX = event.changedTouches[0].screenX, touchEndY = event.changedTouches[0].screenY;
+        const deltaX = touchEndX - state.touchStartX, deltaY = touchEndY - state.touchStartY;
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            if (Math.abs(deltaX) > CONFIG.touchSwipeThreshold) findNextSpreadWithItems(deltaX < 0 ? 1 : -1);
+        } else {
+            if (Math.abs(deltaY) > CONFIG.touchSwipeThreshold) changeSpreadItem(deltaY < 0 ? 1 : -1);
+        }
+        state.touchStartX = null;
+        state.touchStartY = null;
+    });
+}
+
+function setupLightboxControls() {
+    document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+    lightboxPrevBtn.addEventListener('click', () => findNextSpreadWithItems(-1));
+    lightboxNextBtn.addEventListener('click', () => findNextSpreadWithItems(1));
+    lightbox.addEventListener('click', (event) => {
+        if (event.target === lightbox || event.target === lightboxStage) closeLightbox();
+    });
+    setupLightboxWheel();
+    setupLightboxTouchGestures();
+}
+
+function wrapPageImages() { document.querySelectorAll(".page-image").forEach(e => { const t = document.createElement("div"); t.className = "page-image-wrapper", e.parentNode.insertBefore(t, e), t.appendChild(e) }) }
+
+function setupMediaOverlays() { 
+    for (const spreadNum in mediaOverlays) { 
+        const config = mediaOverlays[spreadNum];
+        
+        if (config.right) {
+            const targetSelector = `#p${spreadNum} .front .page-image-wrapper`;
+            const container = document.querySelector(targetSelector);
+            if (container) { 
+                const vid = document.createElement("video"); 
+                vid.className = "media-overlay"; 
+                vid.style.objectFit = "fit";
+                Object.assign(vid, { src: config.right, autoplay: true, muted: true, loop: true, playsInline: true }); 
+                container.appendChild(vid); 
+            }
+        }
+
+        if (config.left) {
+            const prevPaperIndex = parseInt(spreadNum) - 1;
+            const targetSelector = `#p${prevPaperIndex} .back .page-image-wrapper`;
+            const container = document.querySelector(targetSelector);
+            if (container) { 
+                const vid = document.createElement("video"); 
+                vid.className = "media-overlay"; 
+                vid.style.objectFit = "fit";
+                Object.assign(vid, { src: config.left, autoplay: true, muted: true, loop: true, playsInline: true }); 
+                container.appendChild(vid); 
+            }
+        }
+    } 
+}
+
 function main() {
     const hash = location.hash;
     let initialSpread = 0;
+    let activeNavID = 'portfolio';
+
     if (hash.startsWith('#spread=')) {
-        initialSpread = parseInt(hash.substring(8), 10) || 0;
+        initialSpread = parseInt(hash.substring(8), 10);
+        if (isNaN(initialSpread)) initialSpread = 0;
     }
 
-    createNav('../../', SPREAD_TO_NAV_ID_MAP[initialSpread] || 'portfolio');
+    activeNavID = SPREAD_TO_NAV_ID_MAP[initialSpread] || 'portfolio';
+    createNav('../../', activeNavID);
 
-    // Filtrace položek pro lightbox
-    galleryItems = buttonData.filter(item => !item.url).sort((a, b) => a.spread - b.spread);
+    galleryItems = buttonData
+        .filter(item => !item.url)
+        .sort((a, b) => a.spread - b.spread);
+
     const itemSpreads = new Set(galleryItems.map(item => item.spread));
     spreadsWithItems = [...itemSpreads].sort((a, b) => a - b);
 
     slider.min = 0;
     slider.max = state.maxSpread;
-    
-    wrapPageImages(); // Obalí obrázky pro overlays
-    // setupMediaOverlays(); <--- SMAZÁNO! Nahrazeno dynamickým manageResources()
-    
+    wrapPageImages();
+    setupMediaOverlays();
     setupEventListeners();
 
     if (initialSpread > 0) {
@@ -446,6 +698,8 @@ function main() {
     } else {
         updateBook(0);
         renderButtons(0);
+        // === SPUŠTĚNÍ LAZY LOADING PRO PRVNÍ STRANU ===
+        managePageLoading(0);
     }
 }
 
