@@ -31,10 +31,13 @@
             position: absolute;
             top: 50%;
             left: 50%;
+            /* Výchozí velikost, JS ji přepíše */
             width: 400px;
-            height: auto;
+            height: 300px; /* Placeholder výška, než se načte obsah */
             will-change: transform;
-            display: block;
+            display: flex; /* Flex pro centrování placeholderu */
+            align-items: center;
+            justify-content: center;
             box-shadow: none;
             border-radius: 2px;
             cursor: pointer;
@@ -54,6 +57,12 @@
             pointer-events: none;
             /* Animace zvětšení */
             transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), filter 0.3s;
+            opacity: 0; /* Skryté při načítání */
+            animation: fadeIn 0.5s forwards; /* Plynulé zobrazení po načtení */
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
         }
 
         /* Efekt zvětšení pouze na obsah */
@@ -98,8 +107,6 @@
         // =================================================================
         
         const bookMapping = {
-
-            "přední desky.webp": 0,
             // Spread 2 (S3B)
             "4isté rendery pohromadě 2-2.webm": 2,
             "medium3_spread3.webm": 2,
@@ -176,7 +183,7 @@
             "awdawdad.webp": 12,
             "awdawdadwadadw.webp": 12,
             "awdawdadwadadw.webp": 12,
-            "awdawdawdad.webp": 12,
+            "awdawdadwadadw.webp": 12,
             "ddddd.webp": 12,
             "ddddddf.webp": 12,
             "dddddg.webp": 12,
@@ -224,7 +231,7 @@
         allItems.sort(() => 0.5 - Math.random());
 
 
-        // --- 4. INFINITE CANVAS LOGIKA ---
+        // --- 4. INFINITE CANVAS LOGIKA S LAZY LOADINGEM ---
 
         const canvas = document.getElementById('infinite-canvas');
         const WORLD_SIZE = 4000; 
@@ -237,10 +244,19 @@
         class CanvasItem {
             constructor(data, index) {
                 this.data = data;
+                this.isLoaded = false; // Stav načtení
+                this.element = null;
+                this.mediaElement = null; // Odkaz na img/video
+                
                 this.reset();
                 
+                // Vytvoříme pouze kontejner (div), obsah až při lazy loadu
                 this.element = document.createElement('div');
                 this.element.className = 'canvas-item';
+                
+                // Nastavíme velikost a Z-index hned, aby grid fungoval i bez obrázků
+                this.element.style.zIndex = Math.floor(this.depth * 100);
+                this.element.style.width = (380 * this.depth) + 'px';
                 
                 // CLICK EVENT
                 this.element.addEventListener('click', (e) => {
@@ -248,7 +264,6 @@
                     window.location.href = this.data.url;
                 });
 
-                this.loadContent();
                 canvas.appendChild(this.element);
             }
 
@@ -256,9 +271,7 @@
                 this.x = (Math.random() - 0.5) * WORLD_SIZE;
                 this.y = (Math.random() - 0.5) * WORLD_SIZE;
                 
-                // --- ZMĚNA: MENŠÍ ROZPTYL HLOUBKY (VELIKOSTI) ---
-                // Původně: 0.5 až 1.7
-                // Nově: 0.8 až 1.3 (Méně malých, méně obřích)
+                // Menší rozptyl velikosti (0.8 - 1.3)
                 this.depth = 0.8 + Math.random() * 0.5; 
                 
                 const angle = Math.random() * Math.PI * 2;
@@ -267,33 +280,43 @@
                 this.driftY = Math.sin(angle) * speed;
             }
 
+            // Metoda pro fyzické vytvoření obsahu
             loadContent() {
+                if (this.isLoaded) return;
+                this.isLoaded = true;
+
                 const src = this.data.src;
                 const isVideo = src.endsWith('.webm') || src.endsWith('.mp4');
-                let media;
 
                 if (isVideo) {
-                    media = document.createElement('video');
-                    media.muted = true;
-                    media.loop = true;
-                    media.autoplay = true;
-                    media.playsInline = true;
+                    this.mediaElement = document.createElement('video');
+                    this.mediaElement.muted = true;
+                    this.mediaElement.loop = true;
+                    this.mediaElement.playsInline = true;
+                    this.mediaElement.preload = "metadata"; // Načíst jen metadata pro začátek
                 } else {
-                    media = document.createElement('img');
+                    this.mediaElement = document.createElement('img');
+                    this.mediaElement.loading = "lazy"; // Pomocný atribut
+                    this.mediaElement.decoding = "async"; // Nebrzdí main thread
                 }
                 
-                media.src = src;
-                media.onerror = () => { 
+                this.mediaElement.src = src;
+                this.mediaElement.onerror = () => { 
                     this.element.style.display = 'none'; 
                 };
                 
-                this.element.appendChild(media);
+                this.element.appendChild(this.mediaElement);
                 
-                this.element.style.zIndex = Math.floor(this.depth * 100);
-                
-                // --- ZMĚNA: VĚTŠÍ ZÁKLADNÍ VELIKOST ---
-                // Base width zvýšen na 380px, aby i ty vzdálenější (depth 0.8) byly čitelné
-                this.element.style.width = (380 * this.depth) + 'px'; 
+                // Odebereme fixní výšku placeholderu, jakmile se obsah načte
+                this.mediaElement.onload = () => {
+                    this.element.style.height = 'auto';
+                };
+                if (isVideo) {
+                    this.mediaElement.onloadeddata = () => {
+                        this.element.style.height = 'auto';
+                        this.mediaElement.play().catch(()=>{}); // Autoplay po načtení
+                    };
+                }
             }
 
             update() {
@@ -311,6 +334,45 @@
                 if (renderX < -limitX) this.x += WORLD_SIZE;
                 if (renderY > limitY) this.y -= WORLD_SIZE;
                 if (renderY < -limitY) this.y += WORLD_SIZE;
+
+                // --- OPTIMALIZACE / LAZY LOAD LOGIKA ---
+                
+                // Zjistíme, zda je prvek na obrazovce (plus rezerva)
+                const buffer = 300; // Pixely okolo obrazovky
+                const screenW = window.innerWidth;
+                const screenH = window.innerHeight;
+                
+                // Přepočet souřadnic (protože translate v CSS je od středu prvku)
+                // renderX/Y je střed prvku (0,0 je střed obrazovky v CSS, ale tady pro výpočet musíme převést)
+                const screenCenterX = screenW / 2;
+                const screenCenterY = screenH / 2;
+                
+                // Skutečná pozice na obrazovce v pixelech
+                const posX = renderX + screenCenterX;
+                const posY = renderY + screenCenterY;
+                
+                const isVisible = (
+                    posX > -buffer && 
+                    posX < screenW + buffer && 
+                    posY > -buffer && 
+                    posY < screenH + buffer
+                );
+
+                if (isVisible) {
+                    // 1. Pokud není načteno, načteme
+                    if (!this.isLoaded) {
+                        this.loadContent();
+                    }
+                    // 2. Pokud je to video a je načtené, ujistíme se, že hraje
+                    if (this.mediaElement && this.mediaElement.tagName === 'VIDEO') {
+                        if (this.mediaElement.paused) this.mediaElement.play().catch(()=>{});
+                    }
+                } else {
+                    // 3. Pokud je mimo obrazovku a je to video, pauzneme ho (šetří CPU)
+                    if (this.isLoaded && this.mediaElement && this.mediaElement.tagName === 'VIDEO') {
+                        if (!this.mediaElement.paused) this.mediaElement.pause();
+                    }
+                }
 
                 this.element.style.transform = `translate3d(${renderX}px, ${renderY}px, 0)`;
             }
