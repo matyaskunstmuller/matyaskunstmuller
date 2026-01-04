@@ -5,12 +5,386 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matyas Kunstmüller - Portfolio</title>
     <link rel="stylesheet" href="main_style.css">
+    <style>
+        body {
+            background-color: #000;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            cursor: grab;
+        }
+        body:active {
+            cursor: grabbing;
+        }
+        #infinite-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            perspective: 1000px;
+        }
+        
+        .canvas-item {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 400px;
+            height: auto;
+            will-change: transform;
+            display: block;
+            box-shadow: none;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        /* Při najetí zvedneme vrstvu */
+        .canvas-item:hover {
+            z-index: 10000 !important;
+        }
+
+        .canvas-item img, 
+        .canvas-item video {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+            /* Animace zvětšení */
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), filter 0.3s;
+        }
+
+        /* Efekt zvětšení pouze na obsah */
+        .canvas-item:hover img, 
+        .canvas-item:hover video {
+            filter: brightness(1.1);
+            transform: scale(1.1); 
+        }
+
+        .overlay-vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle, rgba(0,0,0,0) 40%, rgba(0,0,0,0.9) 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
+        #nav-placeholder {
+            position: relative;
+            z-index: 1000;
+        }
+    </style>
 </head>
 <body>
+
     <div id="nav-placeholder"></div>
-    <main class="content-column"></main>
+    <div id="infinite-canvas"></div>
+    <div class="overlay-vignette"></div>
 
     <script src="nav.js"></script>
-    <script>createNav('', 'main');</script>
+    <script>
+        if (typeof createNav === 'function') {
+            createNav('', 'main');
+        }
+    </script>
+
+    <script>
+        // =================================================================
+        // 1. DATOVÁ MAPA
+        // =================================================================
+        
+        const bookMapping = {
+
+            "přední desky.webp": 0,
+            // Spread 2 (S3B)
+            "4isté rendery pohromadě 2-2.webm": 2,
+            "medium3_spread3.webm": 2,
+            "medium2_spread3.webm": 2,
+            "4isté rendery pohromadě invert.webm": 2,
+            "proces.webm": 2,
+            "skicas3b.webp": 2,
+
+            // Spread 3 (360)
+            "360-2_overlay.webm": 3,
+            "360 plakat.webp": 3,
+            "360 video.webm": 3,
+
+            // Spread 4 (Piktogramy)
+            "Kunstmuller_gif piktogramů_1.webm": 4,
+            "Kreslicí plátno 343.webp": 4,
+            "Kunstmuller_Hlavní plakát.webp": 4,
+            "stránky.webm": 4,
+
+            // Spread 5 (Bertík)
+            "showcase animace panaček_1.webm": 5,
+            "showcase animace panaček.webm": 5,
+            "bertik casosber.webm": 5,
+
+            // Spread 6 (Busking / Ztohoven)
+            "Celek_2.webm": 6,
+            "Bez názvu-2 copy.webp": 6,
+            "mapa.webp": 6,
+            "Tričko.webp": 6,
+            "plakatos ohniblijos 2.webp": 6,
+            "ztohoven.webm": 6,
+
+            // Spread 7 (Typotrip)
+            "!!!POUŽÍVANÝ LOOP s typo 2_1.webm": 7,
+            "Mockup jen fotky.webp": 7,
+            "333 tripotyp.webp": 7,
+            "DSC00062.webp": 7,
+            "DSC00067.webp": 7,
+            "DSC00069.webp": 7,
+
+            // Spread 8 (Blokkada)
+            "Blokkada - Matyas Kunstmüller (1).webp": 8,
+            "medium2_spread4.webm": 8,
+            "Blokkada8animationweight-ezgif.com-gif-to-webp-converter.webp": 8,
+
+            // Spread 9 (Bez Filtru / Autorská)
+            "Bez filtru_prezentační plakát1(barevný).jpg": 9,
+            "bez filtru_fotodokumentace knížky-03.webp": 9,
+            "bez filtru_fotodokumentace knížky-08.webp": 9,
+            "bez filtru_fotodokumentace knížky-10.webp": 9,
+            "Návrhová plocha 2.jpg": 9,
+            "uaaa loda.jpg": 9,
+            "DSC03806-2.jpg": 9,
+            "ražba ve stanuplener.jpg": 9,
+            "DSC03306.jpg": 9,
+
+            // Spread 10 (City Smog)
+            "showcase naživo.webm": 10,
+            "zvukový clean mock up.webm": 10,
+            "smog/Zelená 0.webm": 10, "smog/Zelená 1.webm": 10, "smog/Zelená 2.webm": 10, "smog/Zelená 3.webm": 10,
+            "smog/otevřeno 0.webm": 10, "smog/otevřeno 1.webm": 10, "smog/otevřeno 2.webm": 10, "smog/otevřeno 3.webm": 10,
+            "smog/závory 1.webm": 10, "smog/závory 2.webm": 10, "smog/závory 3.webm": 10,
+            "smog/červená 0.webm": 10, "smog/červená 1.webm": 10, "smog/červená 2.webm": 10, "smog/červená 3.webm": 10,
+            "smog/šipka 1.webm": 10, "smog/šipka 2.webm": 10, "smog/šipka 3.webm": 10,
+
+            // Spread 11 (1.TXT)
+            "1-txt-2_overlay 2.webm": 11,
+
+            // Spread 12 (Skicák / Ostatní)
+            "Bez dwdwdwd1.webp": 12,
+            "wdaawda.webp": 12,
+            "adwadadwwddw.webp": 12,
+            "awdadw.webp": 12,
+            "awdawdad.webp": 12,
+            "awdawdadwadadw.webp": 12,
+            "awdawdadwadadw.webp": 12,
+            "awdawdawdad.webp": 12,
+            "ddddd.webp": 12,
+            "ddddddf.webp": 12,
+            "dddddg.webp": 12,
+            "dddddw.webp": 12
+        };
+
+        // --- 2. SEZNAM OSTATNÍCH SOUBORŮ ---
+        const otherAssets = [
+            { src: "o-mne/tak bojuj ne.png", url: "o-mne/omne.html" },
+            { src: "o-mne/fotkys.webm", url: "o-mne/omne.html" },
+            { src: "o-mne/a jak mam bojovat.png", url: "o-mne/omne.html" },
+            { src: "projects/projekty/blokkada.webm", url: "projects/font/font.html" },
+            { src: "projects/projekty/typotrip.webm", url: "projects/book/bookengine.html#spread=7" },
+            { src: "projects/font/assets/fontlab variable osy.webp", url: "projects/font/font.html" },
+            { src: "projects/font/assets/ohnuté rohy.webp", url: "projects/font/font.html" }
+        ];
+
+        // --- 3. SESTAVENÍ FINÁLNÍHO SEZNAMU ---
+        let allItems = [];
+
+        // Přidání Book Assets
+        for (const [filename, spread] of Object.entries(bookMapping)) {
+            let fullPath;
+            if (filename.includes("/")) {
+                fullPath = `projects/book/media/${filename}`;
+            } else {
+                fullPath = `projects/book/media/${filename}`;
+            }
+            
+            allItems.push({
+                src: fullPath.replace(/ /g, '%20'),
+                url: `projects/book/bookengine.html#spread=${spread}`
+            });
+        }
+
+        // Přidání Other Assets
+        otherAssets.forEach(item => {
+            allItems.push({
+                src: item.src.replace(/ /g, '%20'),
+                url: item.url
+            });
+        });
+
+        // Zamíchání
+        allItems.sort(() => 0.5 - Math.random());
+
+
+        // --- 4. INFINITE CANVAS LOGIKA ---
+
+        const canvas = document.getElementById('infinite-canvas');
+        const WORLD_SIZE = 4000; 
+        const ITEM_COUNT = allItems.length;
+
+        let camX = 0, camY = 0;
+        let targetCamX = 0, targetCamY = 0;
+        const items = [];
+
+        class CanvasItem {
+            constructor(data, index) {
+                this.data = data;
+                this.reset();
+                
+                this.element = document.createElement('div');
+                this.element.className = 'canvas-item';
+                
+                // CLICK EVENT
+                this.element.addEventListener('click', (e) => {
+                    if (hasMovedDrastically) return; 
+                    window.location.href = this.data.url;
+                });
+
+                this.loadContent();
+                canvas.appendChild(this.element);
+            }
+
+            reset() {
+                this.x = (Math.random() - 0.5) * WORLD_SIZE;
+                this.y = (Math.random() - 0.5) * WORLD_SIZE;
+                
+                // --- ZMĚNA: MENŠÍ ROZPTYL HLOUBKY (VELIKOSTI) ---
+                // Původně: 0.5 až 1.7
+                // Nově: 0.8 až 1.3 (Méně malých, méně obřích)
+                this.depth = 0.8 + Math.random() * 0.5; 
+                
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 0.2 + Math.random() * 0.3;
+                this.driftX = Math.cos(angle) * speed;
+                this.driftY = Math.sin(angle) * speed;
+            }
+
+            loadContent() {
+                const src = this.data.src;
+                const isVideo = src.endsWith('.webm') || src.endsWith('.mp4');
+                let media;
+
+                if (isVideo) {
+                    media = document.createElement('video');
+                    media.muted = true;
+                    media.loop = true;
+                    media.autoplay = true;
+                    media.playsInline = true;
+                } else {
+                    media = document.createElement('img');
+                }
+                
+                media.src = src;
+                media.onerror = () => { 
+                    this.element.style.display = 'none'; 
+                };
+                
+                this.element.appendChild(media);
+                
+                this.element.style.zIndex = Math.floor(this.depth * 100);
+                
+                // --- ZMĚNA: VĚTŠÍ ZÁKLADNÍ VELIKOST ---
+                // Base width zvýšen na 380px, aby i ty vzdálenější (depth 0.8) byly čitelné
+                this.element.style.width = (380 * this.depth) + 'px'; 
+            }
+
+            update() {
+                this.x += this.driftX;
+                this.y += this.driftY;
+
+                let renderX = this.x + (camX * this.depth);
+                let renderY = this.y + (camY * this.depth);
+
+                const limitX = (WORLD_SIZE * this.depth) / 2;
+                const limitY = (WORLD_SIZE * this.depth) / 2;
+
+                // Infinite Wrap
+                if (renderX > limitX) this.x -= WORLD_SIZE;
+                if (renderX < -limitX) this.x += WORLD_SIZE;
+                if (renderY > limitY) this.y -= WORLD_SIZE;
+                if (renderY < -limitY) this.y += WORLD_SIZE;
+
+                this.element.style.transform = `translate3d(${renderX}px, ${renderY}px, 0)`;
+            }
+        }
+
+        // --- Init ---
+        function init() {
+            allItems.forEach((itemData, index) => {
+                items.push(new CanvasItem(itemData, index));
+            });
+            requestAnimationFrame(animate);
+        }
+
+        // --- Animace ---
+        function animate() {
+            camX += (targetCamX - camX) * 0.05;
+            camY += (targetCamY - camY) * 0.05;
+            items.forEach(item => item.update());
+            requestAnimationFrame(animate);
+        }
+
+        // --- Interakce ---
+        let isDragging = false;
+        let startX, startY;
+        let hasMovedDrastically = false;
+
+        window.addEventListener('mousedown', startDrag);
+        window.addEventListener('touchstart', startDrag, {passive: false});
+        window.addEventListener('mousemove', onDrag);
+        window.addEventListener('touchmove', onDrag, {passive: false});
+        window.addEventListener('mouseup', endDrag);
+        window.addEventListener('touchend', endDrag);
+        window.addEventListener('wheel', onWheel, {passive: true});
+
+        function startDrag(e) {
+            if (e.target.closest('a') || e.target.closest('button') || e.target.closest('#nav-placeholder')) return;
+            isDragging = true;
+            hasMovedDrastically = false;
+            startX = e.touches ? e.touches[0].clientX : e.clientX;
+            startY = e.touches ? e.touches[0].clientY : e.clientY;
+            document.body.style.cursor = 'grabbing';
+        }
+
+        function onDrag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            const x = e.touches ? e.touches[0].clientX : e.clientX;
+            const y = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            const dx = x - startX;
+            const dy = y - startY;
+            
+            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                hasMovedDrastically = true;
+            }
+
+            targetCamX += dx * 1.5; 
+            targetCamY += dy * 1.5;
+            
+            startX = x;
+            startY = y;
+        }
+
+        function endDrag() {
+            isDragging = false;
+            document.body.style.cursor = 'grab';
+        }
+
+        function onWheel(e) {
+            targetCamX -= e.deltaX * 1.0;
+            targetCamY -= e.deltaY * 1.0;
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>

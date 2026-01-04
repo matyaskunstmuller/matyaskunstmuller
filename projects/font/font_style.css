@@ -17,6 +17,12 @@
     box-sizing: border-box;
     min-height: 0;
     min-width: 0;
+transition: padding-left 0.3s ease-in-out; 
+}
+
+/* PŘIDAT: Toto pravidlo říká "když je menu zavřené, odsuň obsah o 80px" */
+body.desktop-nav-closed .content-column {
+    padding-left: 60px;
 }
 
 .demo-content {

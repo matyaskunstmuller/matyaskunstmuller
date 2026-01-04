@@ -153,24 +153,34 @@ li.open .nav-expand-arrow::after {
     z-index: 1000;
     transition: transform var(--nav-transition-speed) ease-in-out;
     padding: 1.5rem;
-    border-right: 1px solid #333;
+    border-right: 0px solid #333;
+}
+.desktop-toggle-btn:hover {
+    border-color: #fff; /* Efekt při najetí myší */
 }
 
+/* Co se stane, když se menu zavře */
+body.desktop-nav-closed .desktop-toggle-btn {
+    /* Tlačítko zajede k levému okraji */
+    left: 265px; 
+}
 .desktop-toggle-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    right: -20px;
+    position: fixed;
+    z-index: 1100;
+    top: 10px;
+    left: 190px;
+    right: -40px;
     width: 40px;
     height: 40px;
     background-color: #000;
-    border: 1px solid #333;
-    border-left: none;
-    border-radius: 0 5px 5px 0;
+    border: 1px solid #000000;
+    border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: left 0.3s ease-in-out, border-color 0.2s;
+    transform: none;
 }
 
 .desktop-toggle-btn::before {
@@ -181,11 +191,15 @@ li.open .nav-expand-arrow::after {
     border-top: 2px solid #888;
     border-left: 2px solid #888;
     transform: rotate(-45deg);
-    transition: transform 0.2s;
+    transition: transform 0.2s, margin 0.2s;
+    margin-left: 3px; 
+    margin-top: 1px;
 }
 
 body.desktop-nav-closed .desktop-toggle-btn::before {
     transform: rotate(135deg);
+    margin-left: -3px; /* Posune šipku zpět doleva */
+    margin-top: 1px;
 }
 
 .desktop-nav-content {
@@ -203,12 +217,13 @@ body.desktop-nav-closed #desktop-nav {
     height: 100vh;
     overflow-y: auto;
     overflow-x: hidden;
-    transition: margin-left var(--nav-transition-speed) ease-in-out;
+    transition: margin-left var(--nav-transition-speed) ease-in-out, padding-left var(--nav-transition-speed) ease-in-out;
 }
 
 body.desktop-nav-closed .content-column {
     margin-left: 0;
     width: 100%;
+    padding-left: 40px
 }
 
 /* Mobile Nav */
@@ -270,7 +285,7 @@ body.mobile-nav-open .mobile-nav-content {
 body.mobile-nav-open .mobile-toggle-btn {
     position: absolute;
     top: auto;
-    bottom: 5px;
+    bottom: 15px;
     right: 15px;
     background: none;
     backdrop-filter: none;

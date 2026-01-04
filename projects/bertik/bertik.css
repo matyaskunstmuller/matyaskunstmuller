@@ -20,7 +20,7 @@
     z-index: 200;
     background: rgba(0, 0, 0, 0.8); /* Lehce průhledné pozadí, aby bylo vidět nad videem */
     backdrop-filter: blur(5px);
-    border-bottom: 1px solid #333;
+    border-bottom: 0px solid #333;
 }
 
 .demo-nav-btn {
