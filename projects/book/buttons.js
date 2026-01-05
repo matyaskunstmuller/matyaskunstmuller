@@ -277,7 +277,7 @@ Počítačový program který zachycuje vzpomínky. Zaměřuje se na schopnost p
     },
        {
         spread: 9,
-        mediaSrc: 'media/Bez filtru_prezentační plakát1(barevný).jpg',
+        mediaSrc: 'media/Bez filtru_prezentační plakát1(barevný).webp',
         styles: { top: '35%', left: '4%', width: '28%', height: '55%' }
     },
   {
@@ -298,27 +298,27 @@ Počítačový program který zachycuje vzpomínky. Zaměřuje se na schopnost p
 
      {
         spread: 9,
-        mediaSrc: 'media/Návrhová plocha 2.jpg',
+        mediaSrc: 'media/Návrhová plocha 2.webp',
         styles: { top: '50%', left: '50%', width: '24%', height: '49%' }
     },
      {
         spread: 9,
-        mediaSrc: 'media/uaaa loda.jpg',
+        mediaSrc: 'media/uaaa loda.webp',
         styles: { top: '50%', left: '74%', width: '26%', height: '49%' }
     },
     {
         spread: 9,
-        mediaSrc: 'media/DSC03806-2.jpg',
+        mediaSrc: 'media/DSC03806-2.webp',
         styles: { top: '50%', left: '374%', width: '26%', height: '49%' }
     },
     {
         spread: 9,
-        mediaSrc: 'media/ražba ve stanuplener.jpg',
+        mediaSrc: 'media/ražba ve stanuplener.webp',
         styles: { top: '50%', left: '374%', width: '26%', height: '49%' }
     },
     {
         spread: 9,
-        mediaSrc: 'media/DSC03306.jpg',
+        mediaSrc: 'media/DSC03306.webp',
         styles: { top: '50%', left: '374%', width: '26%', height: '49%' }
     },
 
