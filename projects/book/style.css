@@ -517,6 +517,8 @@ body.desktop-nav-closed .book-viewport {
         .lightbox-item > .lightbox-media { max-width: calc( 100vw - var(--lightbox-h-padding) * 2 ); }
     }
 }
+
+
 /* ================================================= */
 /* === OPRAVA PŘEKRÝVÁNÍ NAVIGACE (FIX 2) === */
 /* ================================================= */
@@ -535,28 +537,27 @@ body.desktop-nav-closed .book-viewport {
 .desktop-toggle-btn, 
 .mobile-toggle-btn {
     z-index: 22002 !important;
-    position: absolute; /* Pojistka, aby z-index fungoval */
+    position: absolute;
 }
 
-/* 4. Vypnutí interakce prvků knihy, když je menu otevřené (aby se neklikalo skrz) */
+/* 4. Vypnutí interakce prvků knihy, když je menu otevřené */
 body.mobile-nav-open .interactive-button,
 body.mobile-nav-open .nav-arrow,
 body.mobile-nav-open #pageSlider {
     pointer-events: none;
 }
+
 /* ===================================== */
 /* === PRELOADER (NAČÍTACÍ OBRAZOVKA) === */
 /* ===================================== */
 
 #site-loader {
-    /* ZMĚNA: absolute místo fixed zajistí, že se loader drží uvnitř .book-viewport */
+    /* absolute zajistí, že loader 'plave' nad knihou a neposouvá ji */
     position: absolute; 
     inset: 0;
     background-color: #000000;
     
-    /* ZMĚNA: Snížení z-indexu. Musí být nad knihou (100), 
-       ale pod navigací (tvá navigace má 22000). 
-       Dáváme 20000 pro jistotu. */
+    /* Z-index musí být nad knihou (100), ale pod navigací (22000) */
     z-index: 20000; 
     
     display: flex;
@@ -564,7 +565,7 @@ body.mobile-nav-open #pageSlider {
     align-items: center;
     transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
     
-    /* VOLITELNÉ: Pokud má .book-viewport zaoblené rohy, toto zajistí, že je loader nebude přesahovat */
+    /* Přebírá zaoblení rohů od rodiče (.book-viewport) */
     border-radius: inherit; 
 }
 
@@ -574,7 +575,6 @@ body.mobile-nav-open #pageSlider {
     pointer-events: none;
 }
 
-/* ... zbytek stylů (loader-content, progress-bar atd.) zůstává stejný ... */
 .loader-content {
     width: 300px;
     text-align: center;

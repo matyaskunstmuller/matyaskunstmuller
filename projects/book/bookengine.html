@@ -28,12 +28,24 @@
         width: 100%;
         -webkit-text-size-adjust: 100%;
     }
-</style>
+    
+    /* POJISTKA PRO PRELOADER (aby fungoval i když zlobí externí CSS) */
+    #site-loader {
+        position: absolute !important;
+        inset: 0;
+        z-index: 20000;
+        background-color: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    </style>
 </head>
 <body>
-<div id="nav-placeholder" class="nav-column"></div>
+    <div id="nav-placeholder" class="nav-column"></div>
 
     <div class="book-viewport">
+        
         <div id="site-loader">
             <div class="loader-content">
                 <div class="loader-text">Načítám portfolio...</div>
@@ -43,23 +55,19 @@
                 <div id="progress-percentage">0%</div>
             </div>
         </div>
-        <div id="book" class="book">
-    <script>
-        // Tento skript se podívá, jestli v odkazu není ?spread=X
-        // Pokud ano, převede to na hash, na který tvůj flipbook slyší, 
-        // ale udělá to až po načtení, takže to nerozbije měřítko stránky.
-        window.addEventListener('load', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const spread = urlParams.get('spread');
-            if (spread) {
-                // Pošle informaci tvému flipbook skriptu bez skákání stránky
-                window.location.hash = "spread=" + spread;
-            }
-        });
-    </script>
 
-    <div class="book-viewport">
         <div id="book" class="book">
+            <script>
+                // Skript pro zachování spreadu v URL
+                window.addEventListener('load', function() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const spread = urlParams.get('spread');
+                    if (spread) {
+                        window.location.hash = "spread=" + spread;
+                    }
+                });
+            </script>
+
             <div id="instruction-page">
                 <img src="assets/navod.webp" alt="Návod k použití portfolia">
             </div>
