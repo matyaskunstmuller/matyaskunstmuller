@@ -633,6 +633,67 @@ function wrapPageImages() { document.querySelectorAll(".page-image").forEach(e =
 function setupMediaOverlays() { for (const e in mediaOverlays) { const t = mediaOverlays[e], o = document.querySelector(`#p${Math.floor((e - 1) / 2)} ${e % 2 != 0 ? ".back" : ".front"} .page-image-wrapper`); if (o) { const n = document.createElement("video"); n.className = "media-overlay", Object.assign(n, { src: t.src, autoplay: !0, muted: !0, loop: !0, playsInline: !0 }), o.appendChild(n) } } }
 
 // =================================================================
+//  PRELOADER LOGIKA
+// =================================================================
+
+function startPreloader(onComplete) {
+    const loader = document.getElementById('site-loader');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-percentage');
+    
+    // Hledáme obrázky v knize (#book img)
+    const imagesToLoad = Array.from(document.querySelectorAll('#book img'));
+    
+    let totalAssets = imagesToLoad.length;
+    let loadedAssets = 0;
+    
+    if (totalAssets === 0) {
+        finishLoading();
+        return;
+    }
+
+    function updateProgress() {
+        loadedAssets++;
+        const percent = Math.round((loadedAssets / totalAssets) * 100);
+        
+        if (progressBar) progressBar.style.width = percent + '%';
+        if (progressText) progressText.innerText = percent + '%';
+
+        // Pustíme uživatele dál při 75% načtení
+        if (loadedAssets / totalAssets >= 0.75) {
+            finishLoading();
+        }
+    }
+
+    function finishLoading() {
+        if (loader.classList.contains('loaded')) return;
+
+        if (progressBar) progressBar.style.width = '100%';
+        if (progressText) progressText.innerText = '100%';
+
+        setTimeout(() => {
+            loader.classList.add('loaded');
+            if (onComplete) onComplete();
+        }, 500);
+    }
+
+    imagesToLoad.forEach(img => {
+        // Okamžitě spustit stahování (z data-src do src)
+        if (img.dataset.src) {
+            img.src = img.dataset.src;
+            img.removeAttribute('data-src');
+        }
+
+        if (img.complete && img.naturalHeight !== 0) {
+            updateProgress();
+        } else {
+            img.onload = updateProgress;
+            img.onerror = updateProgress;
+        }
+    });
+}
+
+// =================================================================
 //  INIT
 // =================================================================
 
@@ -641,10 +702,10 @@ function main() {
         createNav('../../', 'projekty-bezfiltru');
     }
 
-    // Inicializace záložek (Knížka / O knížce)
+    // Inicializace záložek
     setupTabs();
 
-    // Inicializace galerie (předpokládáme, že buttonData jsou načteny z buttons.js)
+    // Příprava dat
     if (typeof buttonData !== 'undefined') {
         galleryItems = buttonData.filter(item => !item.url).sort((a, b) => a.spread - b.spread);
         const itemSpreads = new Set(galleryItems.map(item => item.spread));
@@ -653,10 +714,15 @@ function main() {
 
     slider.min = 0;
     slider.max = state.maxSpread;
+    
+    // Nejprve připravíme DOM (zabalíme obrázky, přidáme videa)
     wrapPageImages();
     setupMediaOverlays();
+    
+    // Nastavíme ovládání
     setupEventListeners();
 
+    // Zjistíme počáteční stranu z URL
     const hash = location.hash;
     let initialSpread = 0;
     if (hash.startsWith('#spread=')) {
@@ -665,8 +731,13 @@ function main() {
             initialSpread = spreadFromUrl;
         }
     }
-    slider.value = initialSpread;
-    updateBook(initialSpread);
+
+    // === SPUŠTĚNÍ PRELOADERU ===
+    // Kniha se aktualizuje/zobrazí až po načtení
+    startPreloader(() => {
+        slider.value = initialSpread;
+        updateBook(initialSpread);
+    });
 }
 
 document.addEventListener('DOMContentLoaded', main);

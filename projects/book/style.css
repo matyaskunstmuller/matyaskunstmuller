@@ -544,3 +544,68 @@ body.mobile-nav-open .nav-arrow,
 body.mobile-nav-open #pageSlider {
     pointer-events: none;
 }
+/* ===================================== */
+/* === PRELOADER (NAČÍTACÍ OBRAZOVKA) === */
+/* ===================================== */
+
+#site-loader {
+    /* ZMĚNA: absolute místo fixed zajistí, že se loader drží uvnitř .book-viewport */
+    position: absolute; 
+    inset: 0;
+    background-color: #000000;
+    
+    /* ZMĚNA: Snížení z-indexu. Musí být nad knihou (100), 
+       ale pod navigací (tvá navigace má 22000). 
+       Dáváme 20000 pro jistotu. */
+    z-index: 20000; 
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+    
+    /* VOLITELNÉ: Pokud má .book-viewport zaoblené rohy, toto zajistí, že je loader nebude přesahovat */
+    border-radius: inherit; 
+}
+
+#site-loader.loaded {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* ... zbytek stylů (loader-content, progress-bar atd.) zůstává stejný ... */
+.loader-content {
+    width: 300px;
+    text-align: center;
+    color: #fff;
+    font-family: sans-serif;
+}
+
+.loader-text {
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    opacity: 0.8;
+}
+
+.progress-track {
+    width: 100%;
+    height: 2px;
+    background: #333;
+    position: relative;
+    overflow: hidden;
+}
+
+#progress-bar {
+    width: 0%;
+    height: 100%;
+    background: #fff;
+    transition: width 0.2s linear;
+}
+
+#progress-percentage {
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: #888;
+}

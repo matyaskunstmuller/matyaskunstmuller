@@ -667,6 +667,82 @@ function setupMediaOverlays() {
     } 
 }
 
+// ... (předchozí kód zůstává stejný až po funkci setupMediaOverlays)
+
+// =================================================================
+//  PRELOADER LOGIKA
+// =================================================================
+
+function startPreloader(onComplete) {
+    const loader = document.getElementById('site-loader');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-percentage');
+    
+    // Najdeme všechny obrázky v knize, které mají src nebo data-src
+    // Vynecháme overlay videa, ta se mohou načítat na pozadí
+    const imagesToLoad = Array.from(document.querySelectorAll('#book img'));
+    
+    let totalAssets = imagesToLoad.length;
+    let loadedAssets = 0;
+    
+    // Pokud nejsou žádné obrázky, hned ukončíme
+    if (totalAssets === 0) {
+        finishLoading();
+        return;
+    }
+
+    // Funkce pro aktualizaci progress baru
+    function updateProgress() {
+        loadedAssets++;
+        // Vypočítáme procenta
+        const percent = Math.round((loadedAssets / totalAssets) * 100);
+        
+        // Aktualizujeme UI
+        if (progressBar) progressBar.style.width = percent + '%';
+        if (progressText) progressText.innerText = percent + '%';
+
+        // === NASTAVENÍ HRANICE (THRESHOLD) ===
+        // Zde nastavujeme, kdy pustíme uživatele dál.
+        // 75% = 0.75. Pokud chceš 100%, dej 1.0
+        if (loadedAssets / totalAssets >= 0.75) {
+            finishLoading();
+        }
+    }
+
+    function finishLoading() {
+        // Pojistka, aby se nespustilo vícekrát
+        if (loader.classList.contains('loaded')) return;
+
+        // Dokončíme vizuálně bar na 100%
+        if (progressBar) progressBar.style.width = '100%';
+        if (progressText) progressText.innerText = '100%';
+
+        // Malá pauza pro efekt dokončení
+        setTimeout(() => {
+            loader.classList.add('loaded');
+            if (onComplete) onComplete();
+        }, 500);
+    }
+
+    // Spustíme načítání pro každý obrázek
+    imagesToLoad.forEach(img => {
+        // Pokud má data-src, přehodíme ho na src, aby se začal stahovat HNED
+        if (img.dataset.src) {
+            img.src = img.dataset.src;
+            img.removeAttribute('data-src');
+        }
+
+        // Kontrola, jestli už není načtený (cache)
+        if (img.complete && img.naturalHeight !== 0) {
+            updateProgress();
+        } else {
+            // Event listenery pro načtení nebo chybu
+            img.onload = updateProgress;
+            img.onerror = updateProgress; // I když chyba, započítáme ho, aby se to nezaseklo
+        }
+    });
+}
+
 function main() {
     const hash = location.hash;
     let initialSpread = 0;
@@ -689,18 +765,24 @@ function main() {
 
     slider.min = 0;
     slider.max = state.maxSpread;
+    
     wrapPageImages();
-    setupMediaOverlays();
+    // Videa připravíme, ale necháme je načítat na pozadí (neblokují preloader)
+    setupMediaOverlays(); 
+    
     setupEventListeners();
 
-    if (initialSpread > 0) {
-        animateTo(0, initialSpread, 0);
-    } else {
-        updateBook(0);
-        renderButtons(0);
-        // === SPUŠTĚNÍ LAZY LOADING PRO PRVNÍ STRANU ===
-        managePageLoading(0);
-    }
+    // === ZMĚNA: SPUŠTĚNÍ PRELOADERU PŘED OTEVŘENÍM KNIHY ===
+    startPreloader(() => {
+        // Tento kód se provede až po zmizení loaderu
+        if (initialSpread > 0) {
+            animateTo(0, initialSpread, 0);
+        } else {
+            updateBook(0);
+            renderButtons(0);
+        }
+        console.log("Kniha připravena!");
+    });
 }
 
 document.addEventListener('DOMContentLoaded', main);

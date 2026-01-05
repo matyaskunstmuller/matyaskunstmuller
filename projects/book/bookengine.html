@@ -31,8 +31,19 @@
 </style>
 </head>
 <body>
-    <div id="nav-placeholder" class="nav-column"></div>
-    
+<div id="nav-placeholder" class="nav-column"></div>
+
+    <div class="book-viewport">
+        <div id="site-loader">
+            <div class="loader-content">
+                <div class="loader-text">Načítám portfolio...</div>
+                <div class="progress-track">
+                    <div id="progress-bar"></div>
+                </div>
+                <div id="progress-percentage">0%</div>
+            </div>
+        </div>
+        <div id="book" class="book">
     <script>
         // Tento skript se podívá, jestli v odkazu není ?spread=X
         // Pokud ano, převede to na hash, na který tvůj flipbook slyší, 
