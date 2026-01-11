@@ -1,6 +1,6 @@
 /*
  * ============================================
- * === nav.js (OPRAVENO) ===
+ * === nav.js (S ikonami Instagram a Mail) ===
  * ============================================
  */
 
@@ -25,9 +25,21 @@ function createNav(relativePath = '', activePageID = '') {
                        Projekty
                     </a>`,
         
-        // OPRAVENO: fokty.html -> fotky.html
         fotky: `<a href="${relativePath}projects/fotky/fotky.html" class="${activePageID === 'fotky' ? 'active' : ''}">Fotky</a>`
     };
+
+    // --- 2. Definice Ikonek (SVG) a Odkazů ---
+    // ZDE SI UPRAV ODKAZY NA SVŮJ INSTAGRAM A EMAIL
+    const socialLinks = {
+        instagram: "https://www.instagram.com/vymalovano_mk/", 
+        
+    };
+
+    const icons = {
+        instagram: `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>`,
+        mail: `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>`
+    };
+
 
     // Pod-menu Portfolio
     const portfolioSubNav = [
@@ -98,12 +110,19 @@ function createNav(relativePath = '', activePageID = '') {
     navHTML += `</div>`;
     navHTML += buildSubNav(projektySubNav);
     navHTML += `</li>`;
-    
-    // --- ZDE BYLA CHYBA: Chybělo vložení odkazu na Fotky ---
+
     navHTML += `<li class="nav-spacer"></li>`;
     
+    // Odkaz na Fotky
     navHTML += `<li>${mainLinks.fotky}</li>`;
-    // --------------------------------------------------------
+
+    // --- PŘIDÁNÍ IKON POD FOTKY ---
+    navHTML += `<li class="nav-spacer"></li>`;
+    navHTML += `<li class="nav-spacer"></li>`;
+    navHTML += `<li class="nav-socials">
+                    <a href="${socialLinks.instagram}" target="_blank" aria-label="Instagram">${icons.instagram}</a>
+                   
+                </li>`;
 
     navHTML += '</ul></nav>';
 

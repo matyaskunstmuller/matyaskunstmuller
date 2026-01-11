@@ -8,361 +8,47 @@
     <style>
         body {
             background-color: #000;
-            overflow: hidden;
             margin: 0;
-            padding: 0;
-            user-select: none;
-            cursor: grab;
+            overflow: hidden; /* Zabrání scrollování, pokud se obrázek vejde */
         }
-        body:active {
-            cursor: grabbing;
-        }
-        #infinite-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            perspective: 1000px;
-        }
-        
-        .canvas-item {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            /* Na mobilu menší kontejnery (150px), na PC větší (350px) */
-            width: 350px; 
-            height: 250px;
-            will-change: transform;
-            display: flex;
-            align-items: center;
+
+        /* Zarovnání obsahu na střed */
+        .content-column {
+            display: flex !important;
             justify-content: center;
-            box-shadow: none;
-            border-radius: 2px;
-            cursor: pointer;
-        }
-
-        .canvas-item:hover {
-            z-index: 10000 !important;
-        }
-
-        .canvas-item img, 
-        .canvas-item video {
-            display: block;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            pointer-events: none;
-            opacity: 0;
-            transition: transform 0.3s, filter 0.3s, opacity 0.5s;
-        }
-        
-        .canvas-item .loaded {
-            opacity: 1;
-        }
-
-        .canvas-item:hover img, 
-        .canvas-item:hover video {
-            filter: brightness(1.15);
-            transform: scale(1.08); 
-        }
-
-        .overlay-vignette {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
+            align-items: center;
             height: 100vh;
-            background: radial-gradient(circle, rgba(0,0,0,0) 40%, rgba(0,0,0,0.9) 100%);
-            z-index: 2;
-            pointer-events: none;
+            width: 100%;
+            padding: 20px;
         }
-        #nav-placeholder {
-            position: relative;
-            z-index: 1000;
+
+        /* Styl pro hlavní obrázek */
+        .hero-image {
+            display: block;
+           /* Aby nepřetekl na šířku (mobil) */
+            max-height: 12vh;     /* Aby nepřetekl na výšku */
+            width: auto;          /* Zachování poměru stran */
+            height: auto;         /* Zachování poměru stran */
+            object-fit: contain;  /* Zajistí, že se obrázek nedeformuje */
         }
         
-        /* Mobilní úpravy přímo v CSS */
-        @media (max-width: 768px) {
-            .canvas-item {
-                width: 220px !important; /* Menší základ na mobilu */
-                height: 220px !important;
-            }
-        }
     </style>
 </head>
 <body>
 
     <div id="nav-placeholder"></div>
-    <div id="infinite-canvas"></div>
-    <div class="overlay-vignette"></div>
+
+    <main class="content-column">
+        <img src="epik shit.png" 
+             class="hero-image" 
+             alt="Mega epik interactive shit">
+    </main>
 
     <script src="nav.js"></script>
     <script>
         if (typeof createNav === 'function') {
             createNav('', 'main');
         }
-    </script>
-
-    <script>
-        const isMobile = window.innerWidth < 768;
-
-        const CONFIG = {
-            worldSize: isMobile ? 2000 : 2500, 
-            // ZMĚNA: Base size řešíme primárně v CSS, zde pro výpočty
-            baseItemSize: isMobile ? 350 : 350, 
-            depthMin: 0.8,
-            depthMax: 1.4
-        };
-
-        const bookMapping = {
-            "4isté rendery pohromadě 2-2.webm": 2, "medium3_spread3.webm": 2, "medium2_spread3.webm": 2,
-            "4isté rendery pohromadě invert.webm": 2, "proces.webm": 2, "skicas3b.webp": 2,
-            "360-2_overlay.webm": 3, "360 plakat.webp": 3, "360 video.webm": 3,
-             "Kreslicí plátno 343.webp": 4, "Kunstmuller_Hlavní plakát.webp": 4, "stránky.webm": 4,
-            "showcase animace panaček_1.webm": 5, "showcase animace panaček.webm": 5, "bertik casosber.webm": 5,
-            "Celek_2.webm": 6, "Bez názvu-2 copy.webp": 6, "mapa.webp": 6, "Tričko.webp": 6, "plakatos ohniblijos 2.webp": 6, "ztohoven.webm": 6,
-             "Mockup jen fotky.webp": 7, "333 tripotyp.webp": 7, "DSC00062.webp": 7, "DSC00067.webp": 7, "DSC00069.webp": 7,
-            "Blokkada - Matyas Kunstmüller (1).webp": 8, "medium2_spread4.webm": 8, "Blokkada8animationweight-ezgif.com-gif-to-webp-converter.webp": 8,
-            "Bez filtru_prezentační plakát1(barevný).jpg": 9, "bez filtru_fotodokumentace knížky-03.webp": 9, "bez filtru_fotodokumentace knížky-08.webp": 9, "bez filtru_fotodokumentace knížky-10.webp": 9, "Návrhová plocha 2.jpg": 9, "uaaa loda.jpg": 9, "DSC03806-2.jpg": 9, "ražba ve stanuplener.jpg": 9, "DSC03306.jpg": 9,
-            "showcase naživo.webm": 10, "zvukový clean mock up.webm": 10, "smog/Zelená 0.webm": 10, "smog/Zelená 1.webm": 10, "smog/Zelená 2.webm": 10, "smog/Zelená 3.webm": 10, "smog/otevřeno 0.webm": 10, "smog/otevřeno 1.webm": 10, "smog/otevřeno 2.webm": 10, "smog/otevřeno 3.webm": 10, "smog/závory 1.webm": 10, "smog/závory 2.webm": 10, "smog/závory 3.webm": 10, "smog/červená 0.webm": 10, "smog/červená 1.webm": 10, "smog/červená 2.webm": 10, "smog/červená 3.webm": 10, "smog/šipka 1.webm": 10, "smog/šipka 2.webm": 10, "smog/šipka 3.webm": 10,
-            "1-txt-2_overlay 2.webm": 11,
-            "Bez dwdwdwd1.webp": 12, "wdaawda.webp": 12, "adwadadwwddw.webp": 12, "awdadw.webp": 12, "awdawdad.webp": 12, "awdawdadwadadw.webp": 12, "awdawdawdad.webp": 12, "ddddd.webp": 12, "ddddddf.webp": 12, "dddddg.webp": 12, "dddddw.webp": 12
-        };
-
-        const otherAssets = [
-            { src: "o-mne/tak bojuj ne.png", url: "o-mne/omne.html" },
-            { src: "o-mne/fotkys.webm", url: "o-mne/omne.html" },
-            { src: "o-mne/a jak mam bojovat.png", url: "o-mne/omne.html" },
-            { src: "projects/projekty/blokkada.webm", url: "projects/font/font.html" },
-            { src: "projects/projekty/typotrip.webm", url: "projects/book/bookengine.html#spread=7" },
-            { src: "projects/font/assets/fontlab variable osy.webp", url: "projects/font/font.html" },
-            { src: "projects/font/assets/ohnuté rohy.webp", url: "projects/font/font.html" }
-        ];
-
-        let allItems = [];
-
-        for (const [filename, spread] of Object.entries(bookMapping)) {
-            let fullPath = filename.includes("/") ? `projects/book/media/${filename}` : `projects/book/media/${filename}`;
-            allItems.push({
-                src: fullPath.replace(/ /g, '%20'),
-                url: `projects/book/bookengine.html#spread=${spread}`
-            });
-        }
-
-        otherAssets.forEach(item => {
-            allItems.push({
-                src: item.src.replace(/ /g, '%20'),
-                url: item.url
-            });
-        });
-
-        allItems.sort(() => 0.5 - Math.random());
-        const activeItemsData = allItems; 
-
-        // --- INFINITE CANVAS ---
-        const canvas = document.getElementById('infinite-canvas');
-        
-        let camX = 0, camY = 0;
-        let targetCamX = 0, targetCamY = 0;
-        const items = [];
-
-        class CanvasItem {
-            constructor(data) {
-                this.data = data;
-                this.isLoaded = false;
-                this.element = null;
-                this.mediaElement = null;
-                this.reset();
-                
-                this.element = document.createElement('div');
-                this.element.className = 'canvas-item';
-                
-                // Rozměry podle konfigurace a hloubky
-                const size = CONFIG.baseItemSize * this.depth;
-                this.element.style.width = size + 'px';
-                this.element.style.height = (size * 0.7) + 'px'; 
-                this.element.style.zIndex = Math.floor(this.depth * 100);
-
-                this.element.addEventListener('click', () => {
-                    if (hasMovedDrastically) return; 
-                    window.location.href = this.data.url;
-                });
-
-                canvas.appendChild(this.element);
-            }
-
-            reset() {
-                this.x = (Math.random() - 0.5) * CONFIG.worldSize;
-                this.y = (Math.random() - 0.5) * CONFIG.worldSize;
-                this.depth = CONFIG.depthMin + Math.random() * (CONFIG.depthMax - CONFIG.depthMin);
-                
-                const angle = Math.random() * Math.PI * 2;
-                const speed = 0.2 + Math.random() * 0.3;
-                this.driftX = Math.cos(angle) * speed;
-                this.driftY = Math.sin(angle) * speed;
-            }
-
-            loadContent() {
-                if (this.isLoaded) return;
-                this.isLoaded = true;
-
-                // --- ZMĚNA: POUŽITÍ SLOŽKY THUMBNAILS ---
-                // Zkusíme načíst z 'thumbnails/', pokud neexistuje, fallbackne na originál (teoreticky)
-                // Prohlížeč neumí automatický fallback v JS jednoduše bez chybové hlášky,
-                // ale pokud skript proběhl, soubory tam budou.
-                
-                // Přidáme prefix thumbnails/ k původní cestě
-                const thumbSrc = "thumbnails/" + this.data.src;
-                
-                const isVideo = thumbSrc.endsWith('.webm') || thumbSrc.endsWith('.mp4');
-
-                if (isVideo) {
-                    this.mediaElement = document.createElement('video');
-                    this.mediaElement.muted = true;
-                    this.mediaElement.loop = true;
-                    this.mediaElement.playsInline = true;
-                    this.mediaElement.preload = "metadata"; 
-                } else {
-                    this.mediaElement = document.createElement('img');
-                    this.mediaElement.loading = "lazy";
-                    this.mediaElement.decoding = "async";
-                }
-                
-                this.mediaElement.src = thumbSrc;
-                
-                // FALLBACK: Pokud náhled neexistuje, zkusit originál
-                this.mediaElement.onerror = () => {
-                    console.warn("Náhled nenalezen, zkouším originál:", this.data.src);
-                    this.mediaElement.src = this.data.src;
-                    // Odstranit tento on error, aby se nezacyklil
-                    this.mediaElement.onerror = () => { this.element.style.display = 'none'; };
-                };
-                
-                const onLoad = () => {
-                    this.element.style.height = 'auto'; 
-                    this.mediaElement.classList.add('loaded'); 
-                };
-
-                if (isVideo) {
-                    this.mediaElement.onloadeddata = () => {
-                        onLoad();
-                        this.mediaElement.play().catch(()=>{});
-                    };
-                } else {
-                    this.mediaElement.onload = onLoad;
-                }
-
-                this.element.appendChild(this.mediaElement);
-            }
-
-            update() {
-                this.x += this.driftX;
-                this.y += this.driftY;
-
-                let renderX = this.x + (camX * this.depth);
-                let renderY = this.y + (camY * this.depth);
-
-                const limitX = (CONFIG.worldSize * this.depth) / 2;
-                const limitY = (CONFIG.worldSize * this.depth) / 2;
-
-                if (renderX > limitX) this.x -= CONFIG.worldSize;
-                if (renderX < -limitX) this.x += CONFIG.worldSize;
-                if (renderY > limitY) this.y -= CONFIG.worldSize;
-                if (renderY < -limitY) this.y += CONFIG.worldSize;
-
-                // Lazy load buffer
-                const viewportBuffer = isMobile ? 300 : 500; 
-                const screenW = window.innerWidth;
-                const screenH = window.innerHeight;
-                const posX = renderX + screenW / 2;
-                const posY = renderY + screenH / 2;
-
-                const isVisible = (
-                    posX > -viewportBuffer && 
-                    posX < screenW + viewportBuffer && 
-                    posY > -viewportBuffer && 
-                    posY < screenH + viewportBuffer
-                );
-
-                if (isVisible) {
-                    if (!this.isLoaded) this.loadContent();
-                    if (this.mediaElement && this.mediaElement.tagName === 'VIDEO') {
-                        if (this.mediaElement.paused) this.mediaElement.play().catch(()=>{});
-                    }
-                } else {
-                    if (this.mediaElement && this.mediaElement.tagName === 'VIDEO') {
-                        if (!this.mediaElement.paused) this.mediaElement.pause();
-                    }
-                }
-
-                this.element.style.transform = `translate3d(${renderX}px, ${renderY}px, 0)`;
-            }
-        }
-
-        function init() {
-            activeItemsData.forEach(data => {
-                items.push(new CanvasItem(data));
-            });
-            requestAnimationFrame(animate);
-        }
-
-        function animate() {
-            camX += (targetCamX - camX) * 0.05;
-            camY += (targetCamY - camY) * 0.05;
-            items.forEach(item => item.update());
-            requestAnimationFrame(animate);
-        }
-
-        let isDragging = false;
-        let startX, startY;
-        let hasMovedDrastically = false;
-
-        window.addEventListener('mousedown', startDrag);
-        window.addEventListener('touchstart', startDrag, {passive: false});
-        window.addEventListener('mousemove', onDrag);
-        window.addEventListener('touchmove', onDrag, {passive: false});
-        window.addEventListener('mouseup', endDrag);
-        window.addEventListener('touchend', endDrag);
-        window.addEventListener('wheel', onWheel, {passive: true});
-
-        function startDrag(e) {
-            if (e.target.closest('a') || e.target.closest('button') || e.target.closest('#nav-placeholder')) return;
-            isDragging = true;
-            hasMovedDrastically = false;
-            startX = e.touches ? e.touches[0].clientX : e.clientX;
-            startY = e.touches ? e.touches[0].clientY : e.clientY;
-            document.body.style.cursor = 'grabbing';
-        }
-
-        function onDrag(e) {
-            if (!isDragging) return;
-            e.preventDefault();
-            const x = e.touches ? e.touches[0].clientX : e.clientX;
-            const y = e.touches ? e.touches[0].clientY : e.clientY;
-            const dx = x - startX;
-            const dy = y - startY;
-            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) hasMovedDrastically = true;
-            
-            const speed = isMobile ? 2.5 : 1.5; // Rychlejší posun na mobilu
-            targetCamX += dx * speed; 
-            targetCamY += dy * speed;
-            startX = x;
-            startY = y;
-        }
-
-        function endDrag() {
-            isDragging = false;
-            document.body.style.cursor = 'grab';
-        }
-
-        function onWheel(e) {
-            targetCamX -= e.deltaX * 1.0;
-            targetCamY -= e.deltaY * 1.0;
-        }
-
-        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
