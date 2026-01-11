@@ -1,6 +1,6 @@
 /*
  * ============================================
- * === nav.js (Kompletní verze s opravami) ===
+ * === nav.js (OPRAVENO) ===
  * ============================================
  */
 
@@ -14,17 +14,22 @@ function createNav(relativePath = '', activePageID = '') {
                     </a>`,
 
         omne: `<a href="${relativePath}o-mne/omne.html" class="${activePageID === 'omne' ? 'active' : ''}">O mně</a>`,
+        
         portfolio: `<a href="${relativePath}projects/book/bookengine.html" 
                        class="${activePageID.startsWith('portfolio') ? 'active' : ''}">
                        Portfolio
                     </a>`,
+        
         projekty: `<a href="${relativePath}projects/projekty/projekty.html" 
                        class="${activePageID.startsWith('projekty') ? 'active' : ''}">
                        Projekty
-                    </a>`
+                    </a>`,
+        
+        // OPRAVENO: fokty.html -> fotky.html
+        fotky: `<a href="${relativePath}projects/fotky/fotky.html" class="${activePageID === 'fotky' ? 'active' : ''}">Fotky</a>`
     };
 
-    // Pod-menu Portfolio - Aktualizované pořadí spreadů
+    // Pod-menu Portfolio
     const portfolioSubNav = [
         { id: 'portfolio-s2', href: `${relativePath}projects/book/bookengine.html#spread=2`, text: 'S3B' },
         { id: 'portfolio-s3', href: `${relativePath}projects/book/bookengine.html#spread=3`, text: '360' },
@@ -39,7 +44,7 @@ function createNav(relativePath = '', activePageID = '') {
         { id: 'portfolio-s12', href: `${relativePath}projects/book/bookengine.html#spread=12`, text: 'skicák' }
     ];
 
-    // Pod-menu Projekty - Seřazeno podle projekty.html
+    // Pod-menu Projekty
     const projektySubNav = [
         { id: 'projekty-bertik', href: `${relativePath}projects/bertik/bertik.html`, text: 'Bertík' },
         { id: 'projekty-bezfiltru', href: `${relativePath}projects/bez filtru/bez.filtru.html`, text: 'Bez filtru' },
@@ -48,7 +53,6 @@ function createNav(relativePath = '', activePageID = '') {
         { id: 'projekty-citysmog', href: `${relativePath}projects/city smog super swag/city smog super swag.html`, text: 'City Smog Super Swag' }
     ];
 
-    // Pomocná funkce pro sestavení sub-nav (podporuje target="_blank")
     function buildSubNav(items) {
         let html = '<ul class="sub-nav">';
         for (const item of items) {
@@ -94,6 +98,12 @@ function createNav(relativePath = '', activePageID = '') {
     navHTML += `</div>`;
     navHTML += buildSubNav(projektySubNav);
     navHTML += `</li>`;
+    
+    // --- ZDE BYLA CHYBA: Chybělo vložení odkazu na Fotky ---
+    navHTML += `<li class="nav-spacer"></li>`;
+    
+    navHTML += `<li>${mainLinks.fotky}</li>`;
+    // --------------------------------------------------------
 
     navHTML += '</ul></nav>';
 
@@ -117,7 +127,7 @@ function createNav(relativePath = '', activePageID = '') {
         `;
     }
 
-    // --- Event Listenery pro ovládání menu ---
+    // --- Event Listenery ---
     const arrows = document.querySelectorAll('.nav-expand-arrow');
     arrows.forEach(arrow => {
         arrow.addEventListener('click', (e) => {
@@ -142,7 +152,6 @@ function createNav(relativePath = '', activePageID = '') {
         });
     }
 
-    // Automatické otevření mobilního menu na hlavní stránce
     if (window.innerWidth <= 768 || window.matchMedia("(orientation: portrait)").matches) {
         if (activePageID === 'main') {
             document.body.classList.add('mobile-nav-open');

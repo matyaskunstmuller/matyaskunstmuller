@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matyas Kunstmüller - Fotky</title>
+    <link rel="stylesheet" href="../../main_style.css">
+    
+    <style>
+        /* POJISTKA PÍSMA */
+        html { 
+            -webkit-text-size-adjust: 100%; 
+            text-size-adjust: 100%; 
+        }
+
+        body {
+            background-color: #000;
+            margin: 0;
+            font-family: sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .content-column {
+            min-height: 100vh;
+        }
+
+        .fotky-wrapper {
+            padding: 3rem 3rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* --- STYLOVÁNÍ TEXTŮ --- */
+        .album-section {
+            margin-bottom: 80px;
+        }
+
+        .album-header {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+
+        .album-title, .album-date, .zonerama-link {
+            font-size: 1rem; 
+            line-height: 1.5;
+            color: #fff;
+            text-decoration: none;
+            font-weight: normal;
+        }
+
+        .album-date {
+            color: #888;
+            margin-left: 0;
+            display: inline-block;
+        }
+        
+        .title-row {
+            display: flex;
+            gap: 10px;
+            align-items: baseline;
+        }
+
+        .zonerama-link {
+            color: #888;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+
+        .zonerama-link:hover {
+            color: #fff;
+        }
+
+        /* --- NOVÝ GRID SYSTÉM (FLEX MASONRY) --- */
+        /* Kontejner pro sloupce */
+        .masonry-row {
+            display: flex;
+            gap: 20px; /* Mezera mezi sloupci */
+            width: 100%;
+            align-items: flex-start; /* Aby se sloupce nenatahovaly na výšku */
+        }
+
+        /* Samotný sloupec */
+        .masonry-col {
+            flex: 1; /* Všechny sloupce stejně široké */
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* Mezera mezi fotkami pod sebou */
+            min-width: 0; /* Prevence přetečení */
+        }
+
+        .photo-item {
+            width: 100%;
+            display: block;
+            opacity: 0;
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 2px;
+            transition: filter 0.3s, opacity 0.2s;
+            background-color: #111;
+            cursor: zoom-in;
+        }
+
+        .photo-item img:hover {
+            filter: brightness(1.1);
+            opacity: 0.9;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* --- LIGHTBOX (MODAL) --- */
+        #lightbox {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #lightbox.visible {
+            opacity: 1;
+        }
+
+        #lightbox img {
+            max-width: 90%;
+            max-height: 90vh;
+            object-fit: contain;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            user-select: none;
+        }
+
+        .lb-control {
+            position: absolute;
+            color: #888;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 20px;
+            transition: color 0.2s;
+            user-select: none;
+            background: transparent;
+            border: none;
+        }
+
+        .lb-control:hover {
+            color: #fff;
+        }
+
+        .lb-close { top: 10px; right: 20px; font-size: 3rem; }
+        .lb-prev { left: 10px; top: 50%; transform: translateY(-50%); }
+        .lb-next { right: 10px; top: 50%; transform: translateY(-50%); }
+
+        /* RESPONZIVITA */
+        @media (max-width: 768px) {
+            /* Na mobilu se JS postará o vytvoření jen 1 sloupce, 
+               takže zde jen upravíme padding */
+            .fotky-wrapper { padding: 5rem 1.5rem 2rem 1.5rem; }
+            .lb-prev, .lb-next { padding: 10px; font-size: 1.5rem; }
+            #lightbox img { max-width: 95%; }
+        }
+    </style>
+</head>
+<body>
+    <div id="nav-placeholder"></div>
+
+    <main class="content-column">
+        <div class="fotky-wrapper" id="albums-container"></div>
+    </main>
+
+    <div id="lightbox">
+        <button class="lb-control lb-close" onclick="closeLightbox()">&times;</button>
+        <button class="lb-control lb-prev" onclick="changeImage(-1)">&#10094;</button>
+        <button class="lb-control lb-next" onclick="changeImage(1)">&#10095;</button>
+        <img id="lightbox-img" src="" alt="Fullscreen photo">
+    </div>
+
+    <script src="../../nav.js"></script>
+    <script>
+        if (typeof createNav === 'function') {
+            createNav('../../', 'fotky'); 
+        }
+
+        // =================================================================
+        // DATA ALB
+        // =================================================================
+        const albumsData = [
+            {
+                title: "Silvestr balls",
+                date: "12. 2025",
+                link: "https://eu.zonerama.com/Link/Album/14442878",
+                folder: "assets/Silvestr balls",
+                files: [
+                    "silvert_maty-32.jpg", "silvert_maty-37.jpg", "silvert_maty-45.jpg",
+                    "silvert_maty-49.jpg", "silvert_maty-50.jpg", "silvert_maty-52.jpg", 
+                    "silvert_maty-53.jpg", "silvert_maty-65.jpg", "silvert_maty-67.jpg"
+                ]
+            },
+            {
+                title: "Krušky",
+                date: "8. 2025",
+                link: "https://eu.zonerama.com/Link/Album/13720254",
+                folder: "assets/krusky",
+                files: [
+                    "109-DSC03906.jpg", "113-DSC03910.jpg", "281-DSC04130.jpg",
+                    "285-DSC04134.jpg", "286-DSC04135.jpg", "287-DSC04136.jpg", 
+                    "444-DSC04297.jpg", "446-DSC04299.jpg", "452-DSC04305.jpg", 
+                    "463-DSC04316.jpg", "85-DSC03875.jpg"
+                ]
+            },
+            {
+                title: "Tábor",
+                date: "7. 2025",
+                link: "https://eu.zonerama.com/Link/Album/13571868",
+                folder: "assets/Tábor",
+                files: [
+                    "tabor fotky pro knížku-10.jpg", "tabor fotky pro knížku-103.jpg", 
+                    "tabor fotky pro knížku-12.jpg", "tabor fotky pro knížku-16.jpg", 
+                    "tabor fotky pro knížku-17.jpg", "tabor fotky pro knížku-32.jpg", "tabor fotky pro knížku-95.jpg",
+                    "tabor25_maty thunder_wonder fotak-098.jpg",
+                    "tabor25_maty thunder_wonder fotak-249.jpg",
+                    "tabor25_maty thunder_wonder fotak-250.jpg",
+                    "tabor25_maty thunder_wonder fotak-324.jpg",
+                    "tabor25_maty thunder_wonder fotak-399.jpg",
+                    "tabor25_maty thunder_wonder fotak-400.jpg",
+                    "tabor25_maty thunder_wonder fotak-414.jpg"
+                ]
+            },
+            {
+                title: "Operace bahňáci",
+                date: "9. 2024",
+                link: "https://eu.zonerama.com/Link/Album/13803986",
+                folder: "assets/operace bahňáci",
+                files: [
+                    "DSC03737.jpg", "podmostaci samota.jpg", "podz.jpg",
+                    "silvert_maty-95.jpg", "silvert_maty-98.jpg"
+                ]
+            },
+            {
+                title: "Bůčo puťák",
+                date: "9. 2024",
+                link: "https://eu.zonerama.com/Link/Album/13803911",
+                folder: "assets/buco",
+                files: [
+                    "DSC03580-Edit.jpg", "DSC03608-Edit.jpg", "DSC03626.jpg",
+                    "DSC03647.jpg", "silvert_maty-90.jpg", "silvert_maty-99.jpg"
+                ]
+            },
+            {
+                title: "Semi centrifuga - Branikáři",
+                date: "4. 2024",
+                link: "https://eu.zonerama.com/Link/Album/13803938",
+                folder: "assets/semi centrifuga",
+                files: [
+                    "Semi centrifuga - matyho fotacek 30.4.24-13.jpg", "Semi centrifuga - matyho fotacek 30.4.24-18.jpg",
+                    "Semi centrifuga - matyho fotacek 30.4.24-19.jpg", "Semi centrifuga - matyho fotacek 30.4.24-23.jpg",
+                    "Semi centrifuga - matyho fotacek 30.4.24-28.jpg", "Semi centrifuga - matyho fotacek 30.4.24-34.jpg"
+                ]
+            }
+        ];
+
+        // =================================================================
+        // GENERÁTOR HTML (SKELET & DISTRIBUCE DO SLOUPCŮ)
+        // =================================================================
+        const container = document.getElementById('albums-container');
+        
+        // Zjistíme, jestli jsme na mobilu (pro počet sloupců)
+        const isMobile = window.innerWidth <= 768;
+        const colCount = isMobile ? 1 : 3;
+
+        albumsData.forEach((album, albumIndex) => {
+            // 1. Seřazení souborů (Natural Sort)
+            album.files.sort((a, b) => {
+                return a.localeCompare(b, undefined, {numeric: true, sensitivity: 'base'});
+            });
+
+            // 2. Vytvoření sekce alba
+            const section = document.createElement('div');
+            section.className = 'album-section';
+            
+            // Hlavička
+            const header = document.createElement('div');
+            header.className = 'album-header';
+            header.innerHTML = `
+                <div class="title-row">
+                    <span class="album-title">${album.title}</span>
+                    <span class="album-date">${album.date}</span>
+                </div>
+                <a href="${album.link}" target="_blank" class="zonerama-link">Zonerama &nearr;</a>
+            `;
+
+            // 3. Vytvoření kontejneru pro sloupce (Flexbox řádek)
+            const masonryRow = document.createElement('div');
+            masonryRow.className = 'masonry-row';
+
+            // Vytvoření polí pro sloupce
+            const columns = [];
+            for (let i = 0; i < colCount; i++) {
+                const col = document.createElement('div');
+                col.className = 'masonry-col';
+                columns.push(col);
+                masonryRow.appendChild(col);
+            }
+
+            // 4. Distribuce fotek do sloupců (Round Robin: 1->Col1, 2->Col2, 3->Col3, 4->Col1...)
+            // Tím zajistíme, že soubory JDOU ABECEDNĚ ZLEVA DOPRAVA a pak dolů
+            album.files.forEach((filename, fileIndex) => {
+                const photoItem = document.createElement('div');
+                photoItem.className = 'photo-item';
+                photoItem.style.animationDelay = `${fileIndex * 0.05}s`;
+
+                const img = document.createElement('img');
+                const fullSrc = `${album.folder}/${filename}`;
+                
+                img.src = fullSrc;
+                img.alt = filename;
+                img.loading = "lazy";
+                img.onclick = () => openLightbox(albumIndex, fileIndex);
+
+                photoItem.appendChild(img);
+
+                // Určení, do kterého sloupce fotka patří
+                const targetColIndex = fileIndex % colCount;
+                columns[targetColIndex].appendChild(photoItem);
+            });
+
+            section.appendChild(header);
+            section.appendChild(masonryRow);
+            container.appendChild(section);
+        });
+
+        // =================================================================
+        // LIGHTBOX LOGIKA
+        // =================================================================
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        
+        let currentAlbumIndex = 0;
+        let currentFileIndex = 0;
+
+        function openLightbox(aIndex, fIndex) {
+            currentAlbumIndex = aIndex;
+            currentFileIndex = fIndex;
+            updateLightboxContent();
+            lightbox.style.display = 'flex';
+            setTimeout(() => { lightbox.classList.add('visible'); }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('visible');
+            setTimeout(() => {
+                lightbox.style.display = 'none';
+                lightboxImg.src = "";
+            }, 300);
+            document.body.style.overflow = '';
+        }
+
+        function changeImage(direction) {
+            const album = albumsData[currentAlbumIndex];
+            let newIndex = currentFileIndex + direction;
+
+            if (newIndex < 0) {
+                newIndex = album.files.length - 1;
+            } else if (newIndex >= album.files.length) {
+                newIndex = 0;
+            }
+            currentFileIndex = newIndex;
+            updateLightboxContent();
+        }
+
+        function updateLightboxContent() {
+            const album = albumsData[currentAlbumIndex];
+            const filename = album.files[currentFileIndex];
+            lightboxImg.src = `${album.folder}/${filename}`;
+        }
+
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) closeLightbox();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (!lightbox.classList.contains('visible')) return;
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') changeImage(-1);
+            if (e.key === 'ArrowRight') changeImage(1);
+        });
+    </script>
+</body>
+</html>
