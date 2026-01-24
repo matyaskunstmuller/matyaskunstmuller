@@ -1,4 +1,4 @@
-// ... (Začátek souboru beze změny)
+// ... (Začátek souboru zůstává stejný)
 let instructionsHidden = false;
 
 function hideInstructions() {
@@ -101,6 +101,65 @@ const SPREAD_TO_NAV_ID_MAP = {
     14: 'portfolio-s14'
 };
 
+// =================================================================
+//  POMOCNÉ FUNKCE (VIDEO)
+// =================================================================
+
+/**
+ * Vytvoří video element s podporou pro Safari (HEVC .mov) i ostatní (.webm).
+ * Automaticky předpokládá, že vedle souboru .webm existuje i .mov verze.
+ */
+function createCrossBrowserVideo(src, showControls = false, autoplay = true) {
+    const video = document.createElement('video');
+    
+    // Nastavení základních vlastností
+    video.muted = true;             // Nutné pro autoplay
+    video.playsInline = true;       // Nutné pro iOS
+    video.disablePictureInPicture = true;
+    
+    if (autoplay) {
+        video.autoplay = true;
+        video.loop = true;
+    }
+    
+    if (showControls) {
+        video.controls = true;
+        video.muted = false; // Pokud má controls, povolíme zvuk
+        video.autoplay = false;
+    } else {
+        video.className = "media-overlay"; // Třída pro overlay videa
+        video.style.objectFit = "contain"; 
+    }
+
+    // Zjistíme cestu bez přípony
+    const pathParts = src.split('.');
+    const ext = pathParts.pop().toLowerCase(); // např. "webm"
+    const basePath = pathParts.join('.');      // např. "assets/ome"
+
+    // Pokud je vstup WEBM, přidáme fallback pro Safari
+    if (ext === 'webm') {
+        // 1. ZDROJ: HEVC MOV (Pro Safari/iOS) - musí být první!
+        const sourceMov = document.createElement('source');
+        sourceMov.src = `${basePath}.mov`;
+        sourceMov.type = 'video/quicktime; codecs="hvc1"';
+        video.appendChild(sourceMov);
+
+        // 2. ZDROJ: WEBM (Pro Chrome/Firefox/Edge)
+        const sourceWebm = document.createElement('source');
+        sourceWebm.src = src;
+        sourceWebm.type = 'video/webm';
+        video.appendChild(sourceWebm);
+        
+        // Fallback
+        video.src = src; 
+    } else {
+        // Pokud to není webm (např. mp4), použijeme to přímo
+        video.src = src;
+    }
+
+    return video;
+}
+
 function preloadLocalVideo(src) {
     const srcParts = src.split('.');
     const extension = srcParts[srcParts.length - 1].toLowerCase();
@@ -112,7 +171,7 @@ function preloadLocalVideo(src) {
         .catch(err => console.warn('Preload failed:', err));
 }
 
-// === NOVÉ: CHYTRÉ NAČÍTÁNÍ OBRÁZKŮ (Lazy Loading) ===
+// === CHYTRÉ NAČÍTÁNÍ OBRÁZKŮ (Lazy Loading) ===
 function managePageLoading(currentSpread) {
     // Načte stránky v rozsahu: aktuální +/- 5 stran
     const buffer = 5; 
@@ -123,11 +182,8 @@ function managePageLoading(currentSpread) {
         const paper = papers[i];
         if (!paper) continue;
 
-        // Najdeme obrázky, které mají 'data-src'
         const lazyImages = paper.querySelectorAll('img[data-src]');
-        
         lazyImages.forEach(img => {
-            // Přehodíme cestu z data-src do src -> prohlížeč začne stahovat
             img.src = img.dataset.src;
             img.removeAttribute('data-src');
         });
@@ -142,8 +198,6 @@ function updateBook(spread) {
         paper.style.zIndex = spread > index ? index : state.maxSpread - index;
     });
     renderButtons(Math.floor(spread));
-
-    // === ZDE VOLÁME NAČÍTÁNÍ OBRÁZKŮ ===
     managePageLoading(spread);
 }
 
@@ -272,16 +326,16 @@ function loadSpreadItems(spread, itemToSelect = null) {
                 mediaElement.dataset.src = vimeoSrc;
                 Object.assign(mediaElement, { frameborder: '0', allow: 'autoplay; fullscreen; picture-in-picture', allowfullscreen: true });
             } else if (mediaType === 'localVideo') {
-                mediaElement = document.createElement('video');
-                mediaElement.src = mediaSrcPath;
+                // === ZMĚNA: Použití chytré funkce pro video ===
+                mediaElement = createCrossBrowserVideo(mediaSrcPath, showControls, !showControls);
+                mediaElement.classList.add('lightbox-media');
                 mediaElement.dataset.src = mediaSrcPath;
-                const videoProps = { autoplay: false, loop: true, muted: true, playsInline: true, controls: showControls, preload: 'auto' };
-                Object.assign(mediaElement, videoProps);
+
             } else if (mediaType === 'image') {
                 mediaElement = document.createElement('img');
                 mediaElement.src = mediaSrcPath;
+                mediaElement.className = 'lightbox-media';
             }
-            if (mediaElement) mediaElement.className = 'lightbox-media';
         }
         if (itemData.text) {
             if (mediaElement) {
@@ -373,7 +427,7 @@ function updateLightboxView() {
         const iframe = item.querySelector('iframe');
         if (index === currentSpreadItemIndex) {
             item.classList.add('active');
-            if (video) video.play().catch(e => console.log("Autoplay byl zablokován prohlížečem."));
+            if (video) video.play().catch(e => console.log("Autoplay block"));
             if (iframe) {
                 const currentSrc = iframe.dataset.src;
                 if (currentSrc && iframe.src !== currentSrc) iframe.src = currentSrc;
@@ -636,38 +690,47 @@ function setupLightboxControls() {
 
 function wrapPageImages() { document.querySelectorAll(".page-image").forEach(e => { const t = document.createElement("div"); t.className = "page-image-wrapper", e.parentNode.insertBefore(t, e), t.appendChild(e) }) }
 
+// === ZMĚNA: Přepis funkce pro podporu cross-browser videa ===
 function setupMediaOverlays() { 
     for (const spreadNum in mediaOverlays) { 
         const config = mediaOverlays[spreadNum];
         
+        // PRAVÁ STRANA
         if (config.right) {
             const targetSelector = `#p${spreadNum} .front .page-image-wrapper`;
             const container = document.querySelector(targetSelector);
             if (container) { 
-                const vid = document.createElement("video"); 
-                vid.className = "media-overlay"; 
-                vid.style.objectFit = "fit";
-                Object.assign(vid, { src: config.right, autoplay: true, muted: true, loop: true, playsInline: true }); 
+                const vid = createCrossBrowserVideo(config.right, false, true);
+                // Pro overlay styl (přepis vlastností)
+                vid.style.width = "100%";
+                vid.style.height = "100%";
+                vid.style.position = "absolute";
+                vid.style.inset = "0";
+                vid.style.objectFit = "fill"; // nebo contain, dle potřeby
+                
                 container.appendChild(vid); 
             }
         }
 
+        // LEVÁ STRANA
         if (config.left) {
             const prevPaperIndex = parseInt(spreadNum) - 1;
             const targetSelector = `#p${prevPaperIndex} .back .page-image-wrapper`;
             const container = document.querySelector(targetSelector);
             if (container) { 
-                const vid = document.createElement("video"); 
-                vid.className = "media-overlay"; 
-                vid.style.objectFit = "fit";
-                Object.assign(vid, { src: config.left, autoplay: true, muted: true, loop: true, playsInline: true }); 
+                const vid = createCrossBrowserVideo(config.left, false, true);
+                // Pro overlay styl
+                vid.style.width = "100%";
+                vid.style.height = "100%";
+                vid.style.position = "absolute";
+                vid.style.inset = "0";
+                vid.style.objectFit = "fill";
+                
                 container.appendChild(vid); 
             }
         }
     } 
 }
-
-// ... (předchozí kód zůstává stejný až po funkci setupMediaOverlays)
 
 // =================================================================
 //  PRELOADER LOGIKA
@@ -678,67 +741,54 @@ function startPreloader(onComplete) {
     const progressBar = document.getElementById('progress-bar');
     const progressText = document.getElementById('progress-percentage');
     
-    // Najdeme všechny obrázky v knize, které mají src nebo data-src
-    // Vynecháme overlay videa, ta se mohou načítat na pozadí
+    // Najdeme všechny obrázky v knize
     const imagesToLoad = Array.from(document.querySelectorAll('#book img'));
     
     let totalAssets = imagesToLoad.length;
     let loadedAssets = 0;
     
-    // Pokud nejsou žádné obrázky, hned ukončíme
     if (totalAssets === 0) {
         finishLoading();
         return;
     }
 
-    // Funkce pro aktualizaci progress baru
     function updateProgress() {
         loadedAssets++;
-        // Vypočítáme procenta
         const percent = Math.round((loadedAssets / totalAssets) * 100);
         
-        // Aktualizujeme UI
         if (progressBar) progressBar.style.width = percent + '%';
         if (progressText) progressText.innerText = percent + '%';
 
-        // === NASTAVENÍ HRANICE (THRESHOLD) ===
-        // Zde nastavujeme, kdy pustíme uživatele dál.
-        // 75% = 0.75. Pokud chceš 100%, dej 1.0
+        // Pustíme dál při 75%
         if (loadedAssets / totalAssets >= 0.75) {
             finishLoading();
         }
     }
 
     function finishLoading() {
-        // Pojistka, aby se nespustilo vícekrát
         if (loader.classList.contains('loaded')) return;
 
-        // Dokončíme vizuálně bar na 100%
         if (progressBar) progressBar.style.width = '100%';
         if (progressText) progressText.innerText = '100%';
 
-        // Malá pauza pro efekt dokončení
         setTimeout(() => {
             loader.classList.add('loaded');
             if (onComplete) onComplete();
         }, 500);
     }
 
-    // Spustíme načítání pro každý obrázek
     imagesToLoad.forEach(img => {
-        // Pokud má data-src, přehodíme ho na src, aby se začal stahovat HNED
+        // Okamžité stahování
         if (img.dataset.src) {
             img.src = img.dataset.src;
             img.removeAttribute('data-src');
         }
 
-        // Kontrola, jestli už není načtený (cache)
         if (img.complete && img.naturalHeight !== 0) {
             updateProgress();
         } else {
-            // Event listenery pro načtení nebo chybu
             img.onload = updateProgress;
-            img.onerror = updateProgress; // I když chyba, započítáme ho, aby se to nezaseklo
+            img.onerror = updateProgress;
         }
     });
 }
@@ -767,14 +817,10 @@ function main() {
     slider.max = state.maxSpread;
     
     wrapPageImages();
-    // Videa připravíme, ale necháme je načítat na pozadí (neblokují preloader)
     setupMediaOverlays(); 
-    
     setupEventListeners();
 
-    // === ZMĚNA: SPUŠTĚNÍ PRELOADERU PŘED OTEVŘENÍM KNIHY ===
     startPreloader(() => {
-        // Tento kód se provede až po zmizení loaderu
         if (initialSpread > 0) {
             animateTo(0, initialSpread, 0);
         } else {

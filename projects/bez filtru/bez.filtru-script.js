@@ -18,7 +18,6 @@ const mediaOverlays = {
 };
 
 const book = document.getElementById('book');
-// Vybíráme viewport třídou, protože se struktura HTML změnila
 const bookViewport = document.querySelector('.book-viewport');
 const slider = document.getElementById('pageSlider');
 const interactiveLayer = document.getElementById('interactive-layer');
@@ -43,7 +42,65 @@ let spreadItems = [];
 let currentSpreadItemIndex = 0;
 let isLightboxAnimating = false;
 
-// === FUNKCE PRO PŘEDNAČTENÍ LOKÁLNÍCH VIDEÍ ===
+// =================================================================
+//  POMOCNÉ FUNKCE (VIDEO & LOADING)
+// =================================================================
+
+/**
+ * Vytvoří video element s podporou pro Safari (HEVC .mov) i ostatní (.webm).
+ * Automaticky předpokládá, že vedle souboru .webm existuje i .mov verze.
+ */
+function createCrossBrowserVideo(src, showControls = false, autoplay = true) {
+    const video = document.createElement('video');
+    
+    // Nastavení základních vlastností
+    video.muted = true;             // Nutné pro autoplay
+    video.playsInline = true;       // Nutné pro iOS
+    video.disablePictureInPicture = true;
+    
+    if (autoplay) {
+        video.autoplay = true;
+        video.loop = true;
+    }
+    
+    if (showControls) {
+        video.controls = true;
+        video.muted = false; // Pokud má controls, povolíme zvuk
+        video.autoplay = false;
+    } else {
+        video.style.objectFit = "contain"; 
+        video.className = "media-overlay";
+    }
+
+    // Zjistíme cestu bez přípony
+    const pathParts = src.split('.');
+    const ext = pathParts.pop().toLowerCase(); // např. "webm"
+    const basePath = pathParts.join('.');      // např. "assets/media/video"
+
+    // Pokud je vstup WEBM, přidáme fallback pro Safari
+    if (ext === 'webm') {
+        // 1. ZDROJ: HEVC MOV (Pro Safari/iOS) - musí být první!
+        const sourceMov = document.createElement('source');
+        sourceMov.src = `${basePath}.mov`;
+        sourceMov.type = 'video/quicktime; codecs="hvc1"';
+        video.appendChild(sourceMov);
+
+        // 2. ZDROJ: WEBM (Pro Chrome/Firefox/Edge)
+        const sourceWebm = document.createElement('source');
+        sourceWebm.src = src;
+        sourceWebm.type = 'video/webm';
+        video.appendChild(sourceWebm);
+        
+        // Fallback src
+        video.src = src; 
+    } else {
+        // Pokud to není webm (např. mp4), použijeme to přímo
+        video.src = src;
+    }
+
+    return video;
+}
+
 function preloadLocalVideo(src) {
     const srcParts = src.split('.');
     const extension = srcParts[srcParts.length - 1].toLowerCase();
@@ -53,7 +110,6 @@ function preloadLocalVideo(src) {
         .catch(err => console.warn('Preload failed:', err));
 }
 
-// === CHYTRÉ NAČÍTÁNÍ OBRÁZKŮ (Lazy Loading) ===
 function managePageLoading(currentSpread) {
     const buffer = 5; 
     const start = Math.max(0, Math.floor(currentSpread) - buffer);
@@ -80,21 +136,14 @@ function setupTabs() {
 
     navButtons.forEach(button => {
         button.addEventListener('click', () => {
-            // 1. Deaktivovat všechna tlačítka a panely
             navButtons.forEach(btn => btn.classList.remove('active'));
             demoPanels.forEach(panel => panel.classList.remove('active'));
-
-            // 2. Aktivovat kliknuté tlačítko
             button.classList.add('active');
-
-            // 3. Najít a aktivovat cílový panel
             const targetId = button.getAttribute('data-target');
             const targetPanel = document.getElementById(targetId);
             if (targetPanel) {
                 targetPanel.classList.add('active');
             }
-
-            // 4. Pokud přepínáme zpět na knihu, ujistíme se, že je správně vykreslená
             if (targetId === 'demo-book') {
                 updateBook(parseFloat(slider.value));
             }
@@ -111,8 +160,6 @@ function updateBook(spread) {
         const progress = Math.max(0, Math.min(1, spread - index));
         const rotation = -progress * 180;
         paper.style.transform = `rotateY(${rotation}deg)`;
-        
-        // Z-index logika pro správné překrývání stran
         paper.style.zIndex = spread > index ? index : state.maxSpread - index;
     });
     renderButtons(Math.floor(spread));
@@ -121,7 +168,6 @@ function updateBook(spread) {
 
 function renderButtons(spread) {
     interactiveLayer.innerHTML = '';
-    // buttonData je globální proměnná z buttons.js
     const relevantButtons = buttonData.filter(btn => btn.spread === spread);
 
     relevantButtons.forEach(data => {
@@ -186,21 +232,15 @@ function closeLightbox() {
     lightboxStage.innerHTML = '';
     lightboxReel.innerHTML = '';
     document.getElementById('lightbox-dots').innerHTML = '';
-
     const overlayTexts = lightbox.querySelectorAll('.lightbox-text-overlay');
     overlayTexts.forEach(el => el.remove());
-
     lightbox.classList.remove('has-multiple-items');
-
     spreadItems = [];
     currentSpreadItemIndex = 0;
 }
 
 function setCurrentSpreadItem(index) {
-    if (index < 0 || index >= spreadItems.length) {
-        console.warn(`Index ${index} je mimo rozsah.`);
-        return;
-    }
+    if (index < 0 || index >= spreadItems.length) return;
     currentSpreadItemIndex = index;
     updateLightboxView();
 }
@@ -209,10 +249,8 @@ function loadSpreadItems(spread, itemToSelect = null) {
     lightboxStage.innerHTML = '';
     lightboxReel.innerHTML = '';
     document.getElementById('lightbox-dots').innerHTML = '';
-
     const oldOverlayTexts = lightbox.querySelectorAll('.lightbox-text-overlay');
     oldOverlayTexts.forEach(el => el.remove());
-
     spreadItems = [];
     currentSpreadItemIndex = 0;
 
@@ -266,18 +304,17 @@ function loadSpreadItems(spread, itemToSelect = null) {
                 Object.assign(mediaElement, { frameborder: '0', allow: 'autoplay; fullscreen; picture-in-picture', allowfullscreen: true });
 
             } else if (mediaType === 'localVideo') {
-                mediaElement = document.createElement('video');
-                mediaElement.src = mediaSrcPath;
+                // === ZMĚNA: Použití chytré funkce pro video ===
+                mediaElement = createCrossBrowserVideo(mediaSrcPath, showControls, !showControls);
+                mediaElement.classList.add('lightbox-media');
+                // Dataset src pro kompatibilitu s lazy loadingem, pokud by byl třeba
                 mediaElement.dataset.src = mediaSrcPath;
-                Object.assign(mediaElement, {
-                    autoplay: false, loop: true, muted: true, playsInline: true,
-                    controls: showControls, preload: 'auto'
-                });
+
             } else if (mediaType === 'image') {
                 mediaElement = document.createElement('img');
                 mediaElement.src = mediaSrcPath;
+                mediaElement.className = 'lightbox-media';
             }
-            if (mediaElement) mediaElement.className = 'lightbox-media';
         }
 
         if (itemData.text) {
@@ -303,42 +340,29 @@ function loadSpreadItems(spread, itemToSelect = null) {
         }
         if (overlayTextElement) lightbox.appendChild(overlayTextElement);
 
+        // Thumbnails
         if (mediaElement || textElement) {
             const thumb = document.createElement('button');
             thumb.className = 'reel-thumbnail';
             thumb.dataset.index = index;
-            thumb.setAttribute('aria-label', `Zobrazit položku ${index + 1}`);
-
+            
             if (itemData.mediaSrc) {
-                let thumbMediaType = '';
+                // Zjednodušený náhled (pro reel stačí img nebo první zdroj videa)
                 const mediaSrc = itemData.mediaSrc;
-                if (mediaSrc.startsWith('http')) {
-                    if (mediaSrc.includes('vimeo.com')) thumbMediaType = 'vimeo';
-                    else {
-                        const ext = mediaSrc.split('.').pop().toLowerCase();
-                        if (['mp4', 'webm', 'gif'].includes(ext)) thumbMediaType = 'localVideo';
-                        else thumbMediaType = 'image';
-                    }
+                const ext = mediaSrc.split('.').pop().toLowerCase();
+                
+                if (['jpg', 'jpeg', 'png', 'webp', 'svg'].includes(ext)) {
+                     const img = document.createElement('img');
+                     img.src = mediaSrc;
+                     thumb.appendChild(img);
+                } else if (['mp4', 'webm', 'gif'].includes(ext)) {
+                     const vid = document.createElement('video');
+                     vid.src = mediaSrc;
+                     vid.muted = true;
+                     thumb.appendChild(vid);
                 } else {
-                    const ext = mediaSrc.split('.').pop().toLowerCase();
-                    if (ext === 'vimeo') thumbMediaType = ext;
-                    else if (['mp4', 'webm', 'gif'].includes(ext)) thumbMediaType = 'localVideo';
-                    else thumbMediaType = 'image';
-                }
-
-                if (thumbMediaType === 'image') {
-                    const img = document.createElement('img');
-                    img.src = mediaSrc;
-                    img.alt = `Náhled ${index + 1}`;
-                    thumb.appendChild(img);
-                } else if (thumbMediaType === 'localVideo') {
-                    const vid = document.createElement('video');
-                    vid.src = mediaSrc;
-                    Object.assign(vid, { muted: true, preload: "metadata", disablePictureInPicture: true, playsInline: true });
-                    thumb.appendChild(vid);
-                } else if (thumbMediaType === 'vimeo') {
-                    thumb.innerHTML = '<span>VIDEO</span>';
-                    thumb.classList.add('is-placeholder');
+                     thumb.innerHTML = '<span>VIDEO</span>';
+                     thumb.classList.add('is-placeholder');
                 }
             } else if (itemData.text) {
                 thumb.innerHTML = '<span>TEXT</span>';
@@ -356,7 +380,6 @@ function loadSpreadItems(spread, itemToSelect = null) {
             const dot = document.createElement('button');
             dot.className = 'lightbox-dot';
             dot.dataset.index = index;
-            dot.setAttribute('aria-label', `Zobrazit položku ${index + 1}`);
             dot.addEventListener('click', () => setCurrentSpreadItem(index));
             dotsContainer.appendChild(dot);
         });
@@ -380,7 +403,7 @@ function updateLightboxView() {
 
         if (index === currentSpreadItemIndex) {
             item.classList.add('active');
-            if (video) video.play().catch(e => console.log("Autoplay block"));
+            if (video) video.play().catch(e => {});
             if (iframe && iframe.dataset.src && iframe.src !== iframe.dataset.src) iframe.src = iframe.dataset.src;
         } else if (index === prevIndex && spreadItems.length > 1) {
             item.classList.add('prev');
@@ -526,7 +549,6 @@ function setupWheel() {
     let wheelAccumulator = 0;
     let isWheelAnimating = false;
     
-    // Posluchač přidáváme na bookViewport, aby nerušil scrollování v "O knížce"
     if (bookViewport) {
         bookViewport.addEventListener('wheel', event => {
             event.preventDefault();
@@ -629,8 +651,39 @@ function setupLightboxControls() {
     setupLightboxTouchGestures();
 }
 
-function wrapPageImages() { document.querySelectorAll(".page-image").forEach(e => { const t = document.createElement("div"); t.className = "page-image-wrapper", e.parentNode.insertBefore(t, e), t.appendChild(e) }) }
-function setupMediaOverlays() { for (const e in mediaOverlays) { const t = mediaOverlays[e], o = document.querySelector(`#p${Math.floor((e - 1) / 2)} ${e % 2 != 0 ? ".back" : ".front"} .page-image-wrapper`); if (o) { const n = document.createElement("video"); n.className = "media-overlay", Object.assign(n, { src: t.src, autoplay: !0, muted: !0, loop: !0, playsInline: !0 }), o.appendChild(n) } } }
+function wrapPageImages() { 
+    document.querySelectorAll(".page-image").forEach(e => { 
+        const t = document.createElement("div"); 
+        t.className = "page-image-wrapper";
+        e.parentNode.insertBefore(t, e);
+        t.appendChild(e);
+    }); 
+}
+
+// === ZMĚNA: Přepsaná funkce setupMediaOverlays pro podporu .mov/.webm ===
+function setupMediaOverlays() { 
+    for (const pageIndex in mediaOverlays) {
+        const config = mediaOverlays[pageIndex];
+        
+        // Původní logika: #p${Math.floor((e - 1) / 2)} ${e % 2 != 0 ? ".back" : ".front"}
+        const spreadIndex = Math.floor((pageIndex - 1) / 2);
+        const sideClass = pageIndex % 2 !== 0 ? ".back" : ".front";
+        const targetSelector = `#p${spreadIndex} ${sideClass} .page-image-wrapper`;
+        
+        const container = document.querySelector(targetSelector);
+        
+        if (container) { 
+            // Použijeme naši novou chytrou funkci
+            const vid = createCrossBrowserVideo(config.src, false, true);
+            
+            // Nastavíme styly pro overlay
+            vid.className = "media-overlay";
+            vid.style.objectFit = "contain";
+            
+            container.appendChild(vid); 
+        } 
+    } 
+}
 
 // =================================================================
 //  PRELOADER LOGIKA
@@ -641,7 +694,6 @@ function startPreloader(onComplete) {
     const progressBar = document.getElementById('progress-bar');
     const progressText = document.getElementById('progress-percentage');
     
-    // Hledáme obrázky v knize (#book img)
     const imagesToLoad = Array.from(document.querySelectorAll('#book img'));
     
     let totalAssets = imagesToLoad.length;
@@ -659,7 +711,6 @@ function startPreloader(onComplete) {
         if (progressBar) progressBar.style.width = percent + '%';
         if (progressText) progressText.innerText = percent + '%';
 
-        // Pustíme uživatele dál při 75% načtení
         if (loadedAssets / totalAssets >= 0.75) {
             finishLoading();
         }
@@ -667,10 +718,8 @@ function startPreloader(onComplete) {
 
     function finishLoading() {
         if (loader.classList.contains('loaded')) return;
-
         if (progressBar) progressBar.style.width = '100%';
         if (progressText) progressText.innerText = '100%';
-
         setTimeout(() => {
             loader.classList.add('loaded');
             if (onComplete) onComplete();
@@ -678,12 +727,10 @@ function startPreloader(onComplete) {
     }
 
     imagesToLoad.forEach(img => {
-        // Okamžitě spustit stahování (z data-src do src)
         if (img.dataset.src) {
             img.src = img.dataset.src;
             img.removeAttribute('data-src');
         }
-
         if (img.complete && img.naturalHeight !== 0) {
             updateProgress();
         } else {
@@ -702,10 +749,8 @@ function main() {
         createNav('../../', 'projekty-bezfiltru');
     }
 
-    // Inicializace záložek
     setupTabs();
 
-    // Příprava dat
     if (typeof buttonData !== 'undefined') {
         galleryItems = buttonData.filter(item => !item.url).sort((a, b) => a.spread - b.spread);
         const itemSpreads = new Set(galleryItems.map(item => item.spread));
@@ -715,14 +760,10 @@ function main() {
     slider.min = 0;
     slider.max = state.maxSpread;
     
-    // Nejprve připravíme DOM (zabalíme obrázky, přidáme videa)
     wrapPageImages();
     setupMediaOverlays();
-    
-    // Nastavíme ovládání
     setupEventListeners();
 
-    // Zjistíme počáteční stranu z URL
     const hash = location.hash;
     let initialSpread = 0;
     if (hash.startsWith('#spread=')) {
@@ -732,8 +773,6 @@ function main() {
         }
     }
 
-    // === SPUŠTĚNÍ PRELOADERU ===
-    // Kniha se aktualizuje/zobrazí až po načtení
     startPreloader(() => {
         slider.value = initialSpread;
         updateBook(initialSpread);

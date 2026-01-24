@@ -7,29 +7,23 @@
     <link rel="stylesheet" href="../../main_style.css" />
     <link rel="stylesheet" href="style.css" />
     <style>
-    /* 1. Hlavní úroveň navigace (odpovídá 1rem) */
+    /* Pojistka pro responzivitu textů */
     #nav-placeholder .project-list a.name-link,
     #nav-placeholder .project-list > ul > li > .nav-row a {
         font-size: 16px !important;
         -webkit-text-size-adjust: none !important;
         text-size-adjust: none !important;
     }
-
-    /* 2. Sub-bar úroveň (odpovídá 0.9rem) */
     #nav-placeholder .sub-nav-item a {
-        font-size: 14.4px !important; /* Přesný přepočet z 0.9rem */
+        font-size: 14.4px !important;
         -webkit-text-size-adjust: none !important;
         text-size-adjust: none !important;
     }
-
-    /* Pojistka proti rozbití layoutu při zoomu */
     html, body {
         overflow-x: hidden;
         width: 100%;
         -webkit-text-size-adjust: 100%;
     }
-    
-    /* POJISTKA PRO PRELOADER (aby fungoval i když zlobí externí CSS) */
     #site-loader {
         position: absolute !important;
         inset: 0;
