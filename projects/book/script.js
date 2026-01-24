@@ -1,4 +1,3 @@
-// ... (Začátek souboru zůstává stejný)
 let instructionsHidden = false;
 
 function hideInstructions() {
@@ -25,38 +24,14 @@ const mediaOverlays = {
     1: { right: 'assets/ome.webm' },
     2: { right: 'assets/S3B-2_overlay.webm' },
     3: { right: 'assets/360-2_overlay.webm' },
-    
-    // Piktogramy (Spread 4)
-    4: { 
-        left: 'assets/Piktogramy pro školu-1_overlay.webm', 
-        right: 'assets/Piktogramy pro školu-2_overlay.webm' 
-    },
-    // Bertik
-    5: { 
-        left: 'assets/bertik_1_overlay.webm', 
-        right: 'assets/bertik_2_overlay.webm' 
-    },
-    // Motion (Spread 6)
-    6: { 
-        left: 'assets/busking a ztohoven-1_overlay.webm', 
-        right: 'assets/ztohoven_overlay.webm' 
-    },
-
+    4: { left: 'assets/Piktogramy pro školu-1_overlay.webm', right: 'assets/Piktogramy pro školu-2_overlay.webm' },
+    5: { left: 'assets/bertik_1_overlay.webm', right: 'assets/bertik_2_overlay.webm' },
+    6: { left: 'assets/busking a ztohoven-1_overlay.webm', right: 'assets/ztohoven_overlay.webm' },
     7: { right: 'assets/Typotrip-2_overlay.webm' },
-
     8: { right: 'assets/blokkada_overlay.webm' },
-    
-    // City Smog
     10: { right: 'assets/city smog-2_overlay.webm' }, 
-    
-    // 1.TXT
     11: { right: 'assets/1-txt-2_overlay_1.webm' }, 
-
-    // Skicaky
-    12: {
-        left: 'assets/skicaky_1_overlay.webm', 
-        right: 'assets/skicaky_2_overlay.webm' 
-    }, 
+    12: { left: 'assets/skicaky_1_overlay.webm', right: 'assets/skicaky_2_overlay.webm' }, 
 };
 
 const book = document.getElementById('book');
@@ -84,20 +59,12 @@ let spreadsWithItems = [];
 let spreadItems = [];
 let currentSpreadItemIndex = 0;
 let isLightboxAnimating = false;
+let lastRenderedSpread = -1; // Optimalizace: pro vykreslování tlačítek
 
 const SPREAD_TO_NAV_ID_MAP = {
-    2: 'portfolio-s2', 
-    3: 'portfolio-s3', 
-    4: 'portfolio-s4', 
-    5: 'portfolio-s5',
-    6: 'portfolio-s6', 
-    7: 'portfolio-s7', 
-    8: 'portfolio-s8', 
-    9: 'portfolio-s9',   
-    10: 'portfolio-s10', 
-    11: 'portfolio-s11', 
-    12: 'portfolio-s12', 
-    13: 'portfolio-s13', 
+    2: 'portfolio-s2', 3: 'portfolio-s3', 4: 'portfolio-s4', 5: 'portfolio-s5',
+    6: 'portfolio-s6', 7: 'portfolio-s7', 8: 'portfolio-s8', 9: 'portfolio-s9',   
+    10: 'portfolio-s10', 11: 'portfolio-s11', 12: 'portfolio-s12', 13: 'portfolio-s13', 
     14: 'portfolio-s14'
 };
 
@@ -107,14 +74,11 @@ const SPREAD_TO_NAV_ID_MAP = {
 
 /**
  * Vytvoří video element s podporou pro Safari (HEVC .mov) i ostatní (.webm).
- * Automaticky předpokládá, že vedle souboru .webm existuje i .mov verze.
  */
 function createCrossBrowserVideo(src, showControls = false, autoplay = true) {
     const video = document.createElement('video');
-    
-    // Nastavení základních vlastností
-    video.muted = true;             // Nutné pro autoplay
-    video.playsInline = true;       // Nutné pro iOS
+    video.muted = true;             
+    video.playsInline = true;       
     video.disablePictureInPicture = true;
     
     if (autoplay) {
@@ -124,36 +88,30 @@ function createCrossBrowserVideo(src, showControls = false, autoplay = true) {
     
     if (showControls) {
         video.controls = true;
-        video.muted = false; // Pokud má controls, povolíme zvuk
+        video.muted = false; 
         video.autoplay = false;
     } else {
-        video.className = "media-overlay"; // Třída pro overlay videa
+        video.className = "media-overlay"; 
         video.style.objectFit = "contain"; 
     }
 
-    // Zjistíme cestu bez přípony
     const pathParts = src.split('.');
-    const ext = pathParts.pop().toLowerCase(); // např. "webm"
-    const basePath = pathParts.join('.');      // např. "assets/ome"
+    const ext = pathParts.pop().toLowerCase(); 
+    const basePath = pathParts.join('.');      
 
-    // Pokud je vstup WEBM, přidáme fallback pro Safari
     if (ext === 'webm') {
-        // 1. ZDROJ: HEVC MOV (Pro Safari/iOS) - musí být první!
         const sourceMov = document.createElement('source');
         sourceMov.src = `${basePath}.mov`;
         sourceMov.type = 'video/quicktime; codecs="hvc1"';
         video.appendChild(sourceMov);
 
-        // 2. ZDROJ: WEBM (Pro Chrome/Firefox/Edge)
         const sourceWebm = document.createElement('source');
         sourceWebm.src = src;
         sourceWebm.type = 'video/webm';
         video.appendChild(sourceWebm);
         
-        // Fallback
         video.src = src; 
     } else {
-        // Pokud to není webm (např. mp4), použijeme to přímo
         video.src = src;
     }
 
@@ -163,17 +121,13 @@ function createCrossBrowserVideo(src, showControls = false, autoplay = true) {
 function preloadLocalVideo(src) {
     const srcParts = src.split('.');
     const extension = srcParts[srcParts.length - 1].toLowerCase();
-    if (src.startsWith('http') || extension === 'vimeo') {
-        return;
-    }
+    if (src.startsWith('http') || extension === 'vimeo') return;
     fetch(src, { mode: 'no-cors', cache: 'force-cache' })
         .then(response => { })
         .catch(err => console.warn('Preload failed:', err));
 }
 
-// === CHYTRÉ NAČÍTÁNÍ OBRÁZKŮ (Lazy Loading) ===
 function managePageLoading(currentSpread) {
-    // Načte stránky v rozsahu: aktuální +/- 5 stran
     const buffer = 5; 
     const start = Math.max(0, Math.floor(currentSpread) - buffer);
     const end = Math.min(papers.length, Math.floor(currentSpread) + buffer);
@@ -181,7 +135,6 @@ function managePageLoading(currentSpread) {
     for (let i = start; i < end; i++) {
         const paper = papers[i];
         if (!paper) continue;
-
         const lazyImages = paper.querySelectorAll('img[data-src]');
         lazyImages.forEach(img => {
             img.src = img.dataset.src;
@@ -190,15 +143,26 @@ function managePageLoading(currentSpread) {
     }
 }
 
+// =================================================================
+//  LOGIKA KNIHY A POSUVNÍKU
+// =================================================================
+
 function updateBook(spread) {
+    // 1. Transformace - musí běžet plynule (každý frame)
     papers.forEach((paper, index) => {
         const progress = Math.max(0, Math.min(1, spread - index));
         const rotation = -progress * 180;
         paper.style.transform = `rotateY(${rotation}deg)`;
         paper.style.zIndex = spread > index ? index : state.maxSpread - index;
     });
-    renderButtons(Math.floor(spread));
-    managePageLoading(spread);
+
+    // 2. Těžké operace (DOM) - děláme jen když se změní číslo stránky
+    const currentIntSpread = Math.floor(spread);
+    if (currentIntSpread !== lastRenderedSpread) {
+        renderButtons(currentIntSpread);
+        managePageLoading(spread);
+        lastRenderedSpread = currentIntSpread;
+    }
 }
 
 function renderButtons(spread) {
@@ -230,6 +194,10 @@ function renderButtons(spread) {
         interactiveLayer.appendChild(element);
     });
 }
+
+// =================================================================
+//  LIGHTBOX
+// =================================================================
 
 function openLightbox(index) {
     const clickedItem = galleryItems[index];
@@ -326,7 +294,6 @@ function loadSpreadItems(spread, itemToSelect = null) {
                 mediaElement.dataset.src = vimeoSrc;
                 Object.assign(mediaElement, { frameborder: '0', allow: 'autoplay; fullscreen; picture-in-picture', allowfullscreen: true });
             } else if (mediaType === 'localVideo') {
-                // === ZMĚNA: Použití chytré funkce pro video ===
                 mediaElement = createCrossBrowserVideo(mediaSrcPath, showControls, !showControls);
                 mediaElement.classList.add('lightbox-media');
                 mediaElement.dataset.src = mediaSrcPath;
@@ -476,7 +443,18 @@ function changeSpreadItem(direction) {
 }
 
 function setupEventListeners() {
-    slider.addEventListener('input', () => updateBook(parseFloat(slider.value)));
+    // === OPTIMALIZACE PRO MOBIL (Throttling) ===
+    let isTicking = false;
+    slider.addEventListener('input', () => {
+        if (!isTicking) {
+            window.requestAnimationFrame(() => {
+                updateBook(parseFloat(slider.value));
+                isTicking = false;
+            });
+            isTicking = true;
+        }
+    }, { passive: true });
+
     slider.addEventListener('change', () => {
         const currentValue = parseFloat(slider.value);
         const targetSpread = Math.round(currentValue);
@@ -690,36 +668,31 @@ function setupLightboxControls() {
 
 function wrapPageImages() { document.querySelectorAll(".page-image").forEach(e => { const t = document.createElement("div"); t.className = "page-image-wrapper", e.parentNode.insertBefore(t, e), t.appendChild(e) }) }
 
-// === ZMĚNA: Přepis funkce pro podporu cross-browser videa ===
 function setupMediaOverlays() { 
     for (const spreadNum in mediaOverlays) { 
         const config = mediaOverlays[spreadNum];
         
-        // PRAVÁ STRANA
         if (config.right) {
             const targetSelector = `#p${spreadNum} .front .page-image-wrapper`;
             const container = document.querySelector(targetSelector);
             if (container) { 
                 const vid = createCrossBrowserVideo(config.right, false, true);
-                // Pro overlay styl (přepis vlastností)
                 vid.style.width = "100%";
                 vid.style.height = "100%";
                 vid.style.position = "absolute";
                 vid.style.inset = "0";
-                vid.style.objectFit = "fill"; // nebo contain, dle potřeby
+                vid.style.objectFit = "fill";
                 
                 container.appendChild(vid); 
             }
         }
 
-        // LEVÁ STRANA
         if (config.left) {
             const prevPaperIndex = parseInt(spreadNum) - 1;
             const targetSelector = `#p${prevPaperIndex} .back .page-image-wrapper`;
             const container = document.querySelector(targetSelector);
             if (container) { 
                 const vid = createCrossBrowserVideo(config.left, false, true);
-                // Pro overlay styl
                 vid.style.width = "100%";
                 vid.style.height = "100%";
                 vid.style.position = "absolute";
@@ -733,7 +706,7 @@ function setupMediaOverlays() {
 }
 
 // =================================================================
-//  PRELOADER LOGIKA
+//  VYLEPŠENÝ PRELOADER (ČEKÁ I NA VIDEA)
 // =================================================================
 
 function startPreloader(onComplete) {
@@ -741,16 +714,25 @@ function startPreloader(onComplete) {
     const progressBar = document.getElementById('progress-bar');
     const progressText = document.getElementById('progress-percentage');
     
-    // Najdeme všechny obrázky v knize
-    const imagesToLoad = Array.from(document.querySelectorAll('#book img'));
+    // 1. Najdeme VŠECHNY mediální prvky (obrázky I videa) v knize
+    // Důležité: setupMediaOverlays musí běžet PŘED touto funkcí
+    const images = Array.from(document.querySelectorAll('#book img'));
+    const videos = Array.from(document.querySelectorAll('#book video'));
+    const allAssets = [...images, ...videos];
     
-    let totalAssets = imagesToLoad.length;
+    let totalAssets = allAssets.length;
     let loadedAssets = 0;
     
     if (totalAssets === 0) {
         finishLoading();
         return;
     }
+
+    // Bezpečnostní pojistka: Maximální doba čekání (např. 8 sekund)
+    const safetyTimeout = setTimeout(() => {
+        console.warn("Preloader timeout - vynucené spuštění");
+        finishLoading();
+    }, 8000);
 
     function updateProgress() {
         loadedAssets++;
@@ -759,8 +741,9 @@ function startPreloader(onComplete) {
         if (progressBar) progressBar.style.width = percent + '%';
         if (progressText) progressText.innerText = percent + '%';
 
-        // Pustíme dál při 75%
-        if (loadedAssets / totalAssets >= 0.75) {
+        // Pustíme dál, když je vše hotovo
+        if (loadedAssets >= totalAssets) {
+            clearTimeout(safetyTimeout);
             finishLoading();
         }
     }
@@ -777,18 +760,37 @@ function startPreloader(onComplete) {
         }, 500);
     }
 
-    imagesToLoad.forEach(img => {
-        // Okamžité stahování
-        if (img.dataset.src) {
-            img.src = img.dataset.src;
-            img.removeAttribute('data-src');
+    // 2. Procházení a kontrola načtení
+    allAssets.forEach(asset => {
+        
+        // --- A) JE TO OBRÁZEK ---
+        if (asset.tagName === 'IMG') {
+            if (asset.dataset.src) {
+                asset.src = asset.dataset.src;
+                asset.removeAttribute('data-src');
+            }
+            // Pokud už je v cache
+            if (asset.complete && asset.naturalHeight !== 0) {
+                updateProgress();
+            } else {
+                asset.onload = updateProgress;
+                asset.onerror = updateProgress; // I chybu počítáme
+            }
         }
-
-        if (img.complete && img.naturalHeight !== 0) {
-            updateProgress();
-        } else {
-            img.onload = updateProgress;
-            img.onerror = updateProgress;
+        
+        // --- B) JE TO VIDEO ---
+        else if (asset.tagName === 'VIDEO') {
+            // Videa potřebují alespoň readyState 3 (HAVE_FUTURE_DATA)
+            if (asset.readyState >= 3) {
+                updateProgress();
+            } else {
+                // 'loadeddata' stačí, aby byl vidět první snímek
+                asset.addEventListener('loadeddata', updateProgress, { once: true });
+                asset.addEventListener('error', updateProgress, { once: true });
+                
+                // Vynutíme načítání (důležité pro Safari)
+                asset.load();
+            }
         }
     });
 }
@@ -817,9 +819,12 @@ function main() {
     slider.max = state.maxSpread;
     
     wrapPageImages();
+    // 1. Nejprve přidáme videa do stránky
     setupMediaOverlays(); 
+    
     setupEventListeners();
 
+    // 2. Pak spustíme preloader, který teď "uvidí" i ta nová videa
     startPreloader(() => {
         if (initialSpread > 0) {
             animateTo(0, initialSpread, 0);
