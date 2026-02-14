@@ -11,10 +11,8 @@ const CONFIG = {
 };
 
 const mediaOverlays = {
-    6: { type: 'webm', src: 'assets/S3B-2_overlay.webm' },
-    8: { type: 'webm', src: 'assets/360-2_overlay.webm' },
-    10: { type: 'webm', src: 'assets/Piktogramy pro školu-2_overlay.webm' },
-    18: { type: 'webm', src: 'assets/Typotrip-2_overlay.webm' },
+    // Zde definujte overlay videa specifická pro tento projekt, pokud existují.
+    // Příklad: 1: { type: 'webm', src: 'media/overlay.webm' }
 };
 
 const book = document.getElementById('book');
@@ -66,32 +64,9 @@ function createCrossBrowserVideo(src, showControls = false, autoplay = true) {
         video.controls = true;
         video.muted = false; 
         video.autoplay = false;
-    } else {
-        video.style.objectFit = "contain"; 
-        video.className = "media-overlay";
     }
 
-    const pathParts = src.split('.');
-    const ext = pathParts.pop().toLowerCase(); 
-    const basePath = pathParts.join('.');      
-
-    if (ext === 'webm') {
-        // 1. ZDROJ: HEVC MOV (Pro Safari/iOS)
-        const sourceMov = document.createElement('source');
-        sourceMov.src = `${basePath}.mov`;
-        sourceMov.type = 'video/quicktime; codecs="hvc1"';
-        video.appendChild(sourceMov);
-
-        // 2. ZDROJ: WEBM (Pro Chrome/Firefox/Edge)
-        const sourceWebm = document.createElement('source');
-        sourceWebm.src = src;
-        sourceWebm.type = 'video/webm';
-        video.appendChild(sourceWebm);
-        
-        video.src = src; 
-    } else {
-        video.src = src;
-    }
+    video.src = src;
 
     return video;
 }
@@ -170,6 +145,13 @@ function updateBook(spread) {
 
 function renderButtons(spread) {
     interactiveLayer.innerHTML = '';
+    
+    // BEZPEČNOSTNÍ KONTROLA: Pokud buttonData neexistují, nic nevykreslujeme a nepadáme
+    if (typeof buttonData === 'undefined') {
+        console.warn('renderButtons: buttonData není definováno. Zkontrolujte, zda je načten soubor buttons.js.');
+        return;
+    }
+
     const relevantButtons = buttonData.filter(btn => btn.spread === spread);
 
     relevantButtons.forEach(data => {
@@ -308,6 +290,7 @@ function loadSpreadItems(spread, itemToSelect = null) {
             } else if (mediaType === 'localVideo') {
                 mediaElement = createCrossBrowserVideo(mediaSrcPath, showControls, !showControls);
                 mediaElement.classList.add('lightbox-media');
+                // Oprava: Video už nedostane třídu media-overlay, která ho nutila na pozici absolute
                 mediaElement.dataset.src = mediaSrcPath;
 
             } else if (mediaType === 'image') {
@@ -681,8 +664,8 @@ function setupMediaOverlays() {
         
         if (container) { 
             const vid = createCrossBrowserVideo(config.src, false, true);
-            vid.className = "media-overlay";
-            vid.style.objectFit = "contain";
+            vid.classList.add("media-overlay"); // Přidáme třídu explicitně
+            // objectFit necháme na CSS
             container.appendChild(vid); 
         } 
     } 
@@ -697,15 +680,27 @@ function startPreloader(onComplete) {
     const progressBar = document.getElementById('progress-bar');
     const progressText = document.getElementById('progress-percentage');
     
-    const imagesToLoad = Array.from(document.querySelectorAll('#book img'));
+    // Oprava: Používáme ID #book i třídu .book pro jistotu
+    const images = Array.from(document.querySelectorAll('#book img, .book img'));
+    const videos = Array.from(document.querySelectorAll('#book video, .book video'));
+    const allAssets = [...images, ...videos];
     
-    let totalAssets = imagesToLoad.length;
+    let totalAssets = allAssets.length;
     let loadedAssets = 0;
     
+    console.log(`Preloader: Nalezeno ${totalAssets} prvků (Img: ${images.length}, Video: ${videos.length})`);
+
     if (totalAssets === 0) {
+        console.warn("Preloader: Žádné prvky nenalezeny! Zkontrolujte ID #book nebo třídu .book v HTML.");
         finishLoading();
         return;
     }
+
+    // Bezpečnostní pojistka
+    const safetyTimeout = setTimeout(() => {
+        console.warn("Preloader timeout");
+        finishLoading();
+    }, 8000);
 
     function updateProgress() {
         loadedAssets++;
@@ -714,7 +709,8 @@ function startPreloader(onComplete) {
         if (progressBar) progressBar.style.width = percent + '%';
         if (progressText) progressText.innerText = percent + '%';
 
-        if (loadedAssets / totalAssets >= 0.75) {
+        if (loadedAssets >= totalAssets) {
+            clearTimeout(safetyTimeout);
             finishLoading();
         }
     }
@@ -729,16 +725,32 @@ function startPreloader(onComplete) {
         }, 500);
     }
 
-    imagesToLoad.forEach(img => {
-        if (img.dataset.src) {
-            img.src = img.dataset.src;
-            img.removeAttribute('data-src');
+    allAssets.forEach(asset => {
+        // --- A) OBRÁZEK ---
+        if (asset.tagName === 'IMG') {
+            if (asset.dataset.src) {
+                asset.src = asset.dataset.src;
+                asset.removeAttribute('data-src');
+            }
+            if (asset.complete && asset.naturalHeight !== 0) {
+                updateProgress();
+            } else {
+                asset.onload = updateProgress;
+                asset.onerror = updateProgress;
+            }
         }
-        if (img.complete && img.naturalHeight !== 0) {
-            updateProgress();
-        } else {
-            img.onload = updateProgress;
-            img.onerror = updateProgress;
+        // --- B) VIDEO ---
+        else if (asset.tagName === 'VIDEO') {
+            if (asset.readyState >= 3) {
+                updateProgress();
+            } else {
+                asset.addEventListener('loadeddata', updateProgress, { once: true });
+                asset.addEventListener('error', () => {
+                    asset.style.display = 'none'; // Skryjeme vadné video
+                    updateProgress();
+                }, { once: true });
+                asset.load(); // Vynutíme načtení
+            }
         }
     });
 }
@@ -767,6 +779,11 @@ function main() {
     setupMediaOverlays();
     setupEventListeners();
 
+    // KONTROLA: Pokud nejsou nalezeny žádné stránky (.paper), kniha se nezobrazí
+    if (papers.length === 0) {
+        console.error("CHYBA: Nenalezeny žádné elementy s třídou '.paper'. Zkontrolujte HTML strukturu #book.");
+    }
+
     const hash = location.hash;
     let initialSpread = 0;
     if (hash.startsWith('#spread=')) {
@@ -777,8 +794,13 @@ function main() {
     }
 
     startPreloader(() => {
-        slider.value = initialSpread;
-        updateBook(initialSpread);
+        // BEZPEČNOSTNÍ KONTROLA: Slider musí existovat
+        if (slider) {
+            slider.value = initialSpread;
+            updateBook(initialSpread);
+        } else {
+            console.error("CHYBA: Nenalezen element #pageSlider.");
+        }
     });
 }
 

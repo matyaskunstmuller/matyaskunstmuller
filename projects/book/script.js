@@ -95,25 +95,7 @@ function createCrossBrowserVideo(src, showControls = false, autoplay = true) {
         video.style.objectFit = "contain"; 
     }
 
-    const pathParts = src.split('.');
-    const ext = pathParts.pop().toLowerCase(); 
-    const basePath = pathParts.join('.');      
-
-    if (ext === 'webm') {
-        const sourceMov = document.createElement('source');
-        sourceMov.src = `${basePath}.mov`;
-        sourceMov.type = 'video/quicktime; codecs="hvc1"';
-        video.appendChild(sourceMov);
-
-        const sourceWebm = document.createElement('source');
-        sourceWebm.src = src;
-        sourceWebm.type = 'video/webm';
-        video.appendChild(sourceWebm);
-        
-        video.src = src; 
-    } else {
-        video.src = src;
-    }
+    video.src = src;
 
     return video;
 }
@@ -677,11 +659,6 @@ function setupMediaOverlays() {
             const container = document.querySelector(targetSelector);
             if (container) { 
                 const vid = createCrossBrowserVideo(config.right, false, true);
-                vid.style.width = "100%";
-                vid.style.height = "100%";
-                vid.style.position = "absolute";
-                vid.style.inset = "0";
-                vid.style.objectFit = "fill";
                 
                 container.appendChild(vid); 
             }
@@ -693,11 +670,6 @@ function setupMediaOverlays() {
             const container = document.querySelector(targetSelector);
             if (container) { 
                 const vid = createCrossBrowserVideo(config.left, false, true);
-                vid.style.width = "100%";
-                vid.style.height = "100%";
-                vid.style.position = "absolute";
-                vid.style.inset = "0";
-                vid.style.objectFit = "fill";
                 
                 container.appendChild(vid); 
             }

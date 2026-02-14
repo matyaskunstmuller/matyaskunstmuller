@@ -206,18 +206,17 @@
                 <div class="back">
                 </div>
             </div>
-        </div>
-                </div>
+        </div> <!-- End #book -->
 
-                <div id="interactive-layer"></div>
-                <button id="arrowLeft" class="nav-arrow left" aria-label="Předchozí stránka"></button>
-                <button id="arrowRight" class="nav-arrow right" aria-label="Další stránka"></button>
+        <div id="interactive-layer"></div>
+        <button id="arrowLeft" class="nav-arrow left" aria-label="Předchozí stránka"></button>
+        <button id="arrowRight" class="nav-arrow right" aria-label="Další stránka"></button>
 
-                <div class="slider-wrap">
-                    <input type="range" id="pageSlider" min="0" max="117" step="0.001" value="0" />
-                </div>
-            </div>
+        <div class="slider-wrap">
+            <input type="range" id="pageSlider" min="0" max="117" step="0.001" value="0" />
         </div>
+    </div> <!-- End .book-viewport -->
+</div> <!-- End #demo-book -->
 
         <div id="demo-about" class="demo-panel">
             <div class="about-content">
@@ -266,12 +265,6 @@
 
     <script src="buttons.js"></script>
     <script src="../../nav.js"></script>
-    <script>
-        // Oprava cesty dle vaší struktury
-        if (typeof createNav === 'function') {
-            createNav('../../', 'projekty-bezfiltru');
-        }
-    </script>
     <script src="bez.filtru-script.js"></script>
 </body>
 </html>

@@ -1,0 +1,188 @@
+# AI Coding Instructions for engine-pro-portfolio
+
+## Přehled projektu
+**engine-pro-portfolio** je vlastní interaktivní engine na vystavování portfolia vytvořený v čistém JavaScriptu, HTML a CSS. Je navržen tak, aby prezentoval vizuální designové práce prostřednictvím zoomovatelných book spreads s media overlays (videa), lightbox galeriemi a vnořenou navigací. Engine podporuje více portfolio projektů, každý s nezávislou implementací HTML/CSS/JS.
+
+**Klíčové charakteristiky:**
+- **Česky psaný kódbase** s českými názvy proměnných, komentáři a textem UI
+- **Vanilla JS** (bez frameworků) - veškerá manipulace s DOM, animace a správa stavu je napsána ručně
+- **Interaktivní book/spread viewer** s Touch a Mouse ovládáním
+- **Media overlay systém** využívající .webm videa
+- **Python build tools** pro optimalizaci médií a generování proxy
+
+---
+
+## Architektura a struktura projektu
+
+### Jádro navigace a vstupní bod
+- **`index.html`** - Hlavní vstupní stránka s hero obrázkem, načítá `nav.js`
+- **`nav.js`** - Globální navigační komponenta - factory funkce `createNav(relativePath, activePageID)`:
+  - Vytváří hierarchickou navigaci s hlavními odkazy: "O mně", "Portfolio", "Projekty", "Fotky"
+  - Spravuje sub-navigační menu (např. portfolio spreads mapují se na anchor-based routy)
+  - Řeší aktivní stav pomocí parametru `activePageID` a CSS tříd `.active` / `.active-sub`
+  - **KRITICKÉ:** Každá projektová stránka volá `createNav()` s relativní cestou a svým ID pro vložení HTML navigace
+  - Používá ID portfolio spreads jako `'portfolio-s2'`, `'portfolio-s3'` mapované v `SPREAD_TO_NAV_ID_MAP`
+
+### Struktura projektů v portfoliu
+Projekty jsou uloženy v `projects/` složce. Každý větší projekt má:
+```
+projects/{project-name}/
+  ├── {name}.html          (hlavní stránka)
+  ├── {name}-script.js     (logika; pokud je složitá)
+  ├── {name}-style.css     (styly)
+  ├── buttons.js           (sdílená data tlačítek/handlery)
+  ├── assets/              (obrázky, zdroje videí)
+  └── media/               (video soubory: .webm)
+```
+
+**Klíčové projekty:**
+- **`projects/book/`** - Hlavní portfolio engine se "book spreads" (dvoustranové rozvržení), lightbox galeriemi a video overlays
+- **`projects/bez filtru/`**, **`projects/1.txt/`**, **`projects/city smog super swag/`** - Individuální portfolio kusy se podobnou spread-based architekturou
+
+### Media architektura
+**Video Format Strategie** (viz `createCrossBrowserVideo()` v `script.js`):
+- Ukládání `.webm` (VP9) pro Chrome/Firefox/Edge
+- Auto-generování `.mov` (HEVC) pro Safari/iOS pomocí `convert_all.py` skriptu
+- Video elementy načítají `.mov` jako první, fallback na `.webm` pomocí `<source>` elementů
+- Videa v media overlays musí být v `.webm` + `.mov` párech NEBO musí být spuštěn conversion skript
+
+**Image optimalizace:**
+- Primární formát: `.webp` (lossy, quality 80)
+- Maximální rozměry: 1920px (šířka/výška)
+- Spravováno pomocí `optimize_all.py`
+
+---
+
+## Kritické vývojářské workflow
+
+### Building/Processing médií
+**Tři Python skripty** v root složce (vyžadují **FFmpeg** v PATH nebo jako `ffmpeg.exe` v project root):
+
+1. **`convert_all.py`** - WebM → HEVC MOV konverze pro iOS
+   ```bash
+   python convert_all.py
+   ```
+   - Skenuje všechny `.webm` soubory, konvertuje na `.mov` s HEVC codecem
+   - Přeskakuje, pokud `.mov` již existuje; zajišťuje, že rozměry pixelů jsou dělitelné 2 (HEVC požadavek)
+   - Používá se před nasazením aktualizací s novými video assety
+
+2. **`optimize_all.py`** - Image optimalizace (JPG/PNG → WebP)
+   ```bash
+   python optimize_all.py
+   ```
+   - Konvertuje obrázky na WebP (quality=80, max 1920px)
+   - Cílí na hardcode definované adresáře v `TARGET_DIRS` (především photo assets)
+   - Smaže zdrojové soubory po konverzi
+
+3. **`generate_proxies.py`** - Generování náhledů pro všechna média
+   ```bash
+   python generate_proxies.py
+   ```
+   - Rekurzivně vytváří thumbnaily (max 400px šířka) ve `thumbnails/` složce
+   - Zrcadlí strukturu adresářů; přeskakuje existující soubory
+   - Obrázky používají LANCZOS resampling; videa používají VP9/H.264 encoding
+
+**Typický workflow:** Po přidání médií → spustit `convert_all.py` → spustit `generate_proxies.py` → nasadit
+
+### Přidání nového portfolio projektu
+1. Vytvořit složku v `projects/{new-project}/`
+2. Vytvořit `{new-project}.html`, `{new-project}-style.css`, `{new-project}-script.js`
+3. V HTML vložit nav: `<div id="nav-placeholder"></div>` + `<script src="../../nav.js"></script>`
+4. Volat `createNav('../../', '{project-id}')` v script tagu
+5. Přidat položku do `projektySubNav` pole v `nav.js`
+6. Přidat média soubory do `assets/` a `media/` podsložek
+7. Spustit Python build skripty před nasazením
+
+---
+
+## Code patterns a konvence
+
+### Správa stavu
+**Spread/Book Viewer Pattern** (viz `projects/book/script.js`):
+- **Globální state objekt:** `const state = { currentSpread, maxSpread, isAnimating, touchStartX, touchStartY }`
+- **Config objekt:** `const CONFIG = { animationDuration, snapDuration, wheelSensitivity, touchSwipeThreshold, lightboxAnimDuration }`
+- State se mutuje přímo (bez immutability framework); aktualizace vždy spouští re-render pomocí `renderSpread()` nebo podobného
+
+### Navigation State Mapování
+```javascript
+const SPREAD_TO_NAV_ID_MAP = {
+    2: 'portfolio-s2', 3: 'portfolio-s3', // ...
+};
+```
+- Spreads jsou 1-indexed v DOM (paper elementy)
+- Nav ID jsou odkazovány v `nav.js` `portfolioSubNav` poli
+- Aktualizace URL hash spouští navigaci přes `window.location.hash` listenery
+
+### Media Overlay konfigurace
+```javascript
+const mediaOverlays = {
+    1: { right: 'assets/ome.webm' },                // Video jen na pravé straně
+    4: { left: '...', right: '...' },              // Obě stránky
+    // Spreads bez položky → žádný overlay
+};
+```
+- Overlays jsou pozicovány absolutně přes spreads
+- Prázdné spreads (bez položky) nemají média
+- Vždy používat relativní cesty od lokace project HTML
+
+### Cross-Browser video obsluha
+```javascript
+function createCrossBrowserVideo(src, showControls = false, autoplay = true) {
+    // ... Vytváří <video> s dual <source> elementy (.mov + .webm)
+}
+```
+- **Vždy volat tuto funkci** místo plain `<video>` tagů pro media overlays
+- Předávat jen `.webm` cestu; funkce automaticky připojuje `.mov` zdroj
+- Videa musí být **muted + autoplay + loop** pro media overlays
+- Zobrazit ovládání jen v gallery lightboxech
+
+### Animace a transitions
+- Používat CSS transitions pro plynulé, hardware-accelerované animace
+- JS kontroluje state, CSS classes spouští vizuální změny (např. `.hidden`, `transform`, `opacity`)
+- Animace jsou debounced pomocí `isAnimating` flagu aby se zabránilo stackování gestů
+- Snap duration (350ms) vs. full animation (500ms) pro různé interakce
+
+### Event handling
+- **Touch gesta:** `touchstart`, `touchmove`, `touchend` s threshold validací (`touchSwipeThreshold: 10`)
+- **Mouse:** `wheel` eventy s sensitivity multiplier (`wheelSensitivity: 0.0025`)
+- **Keyboard:** Page Up/Down, Arrow keys pro spread navigaci
+- **URL hash:** `hashchange` listener pro přímé linkování na spreads
+
+---
+
+## Organizace souborů a pojmenování
+
+- **Lowercase s pomlčkami** pro názvy souborů (`bez.filtru-script.js`, `city smog super swag.html`)
+- **Česká pojmenování** pro proměnné, funkce, komentáře (např. `hideInstructions()`, `mediaOverlays`)
+- **CSS custom properties** pro sdílené hodnoty: `:root { --nav-width: 250px; --nav-transition-speed: 0.3s; }`
+- **UTF-8 encoding povinný** (zvláště v `buttons.js` - komentář to explicitně uvádí)
+
+---
+
+## Časté překážky a omezení
+
+1. **Bez Frameworku** - Veškerá manipulace s DOM, animace, event binding jsou vanilla JS; žádný jQuery, Vue, React
+2. **Video codec páry** - Vždy `.webm` + `.mov` pro kompatibilitu prohlížečů; conversion skript musí být spuštěn
+3. **Relativní cesty** - `nav.js` používá parametr `relativePath` pro práci v jakékoliv hloubce vnoření; musí být přesné (`../../`)
+4. **Integer čísla spreads** - Spreads mapované v `SPREAD_TO_NAV_ID_MAP` musí odpovídat DOM `data-spread` nebo pozicím paper elementů
+5. **Detekce mobilního zařízení** - Některé projekty používají `navigator.userAgent` regex (`/Mobi|Android/i`) pro responsive chování
+6. **Lightbox vs. Overlay** - Overlays jsou full-page média; lightbox je gallery modal; používat příslušné styly a event handlery
+
+---
+
+## Při úpravě tohoto Codebase
+
+- **Přidání nových spreads/stránek:** Aktualizovat `SPREAD_TO_NAV_ID_MAP` + `portfolioSubNav` v `nav.js` + media overlay config v `script.js`
+- **Změna médií:** Vždy spustit `convert_all.py` po přidání `.webm` souborů pro iOS
+- **Styly přes projekty:** Centralizovat v `main_style.css` pokud je to sdílené; project-specific styly v `{name}-style.css`
+- **Bug v interactive logice:** Zkontrolovat spread state mutace v `renderSpread()` + event listener cleanup na spreads
+- **Performance problémy:** Profiling často ukazuje na unbounded event listenery nebo DOM reflows v animation loops; používat `requestAnimationFrame` jen když je nutné (CSS transitions preferované)
+
+---
+
+## Externí závislosti
+
+- **FFmpeg** (lokální nebo systém) - Vyžadován pro video konverzi a generování náhledů
+- **Pillow (PIL)** - Python image processing knihovna (instalována lokálně nebo v systému)
+- **GitHub Pages** - Nasazeno přes `.git` složku; `CNAME` soubor ukazuje na custom doménu
+- **Bez npm/yarn/package.json** - Pure static site; žádný build pipeline mimo Python skripty
