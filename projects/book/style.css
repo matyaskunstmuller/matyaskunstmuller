@@ -150,9 +150,12 @@ body.desktop-nav-closed .book-viewport {
     .paper .front, .paper .back {
         position: absolute;
         inset: 0;
+        -webkit-backface-visibility: hidden;
         backface-visibility: hidden;
+        -webkit-transform-style: preserve-3d;
         transform-style: preserve-3d;
         background: transparent; /* Změněno z #000 */
+        transform: translate3d(0,0,0); /* Fix pro problikávání v Safari */
     }
 
     .paper .back {

@@ -47,6 +47,39 @@ let currentSpreadItemIndex = 0; // Index aktivní položky v poli spreadItems
 let isLightboxAnimating = false; // Zabraňuje spamování kolečkem myši
 
 // === PŘIDÁNO: NOVÁ FUNKCE PRO PŘEDNAČTENÍ LOKÁLNÍCH VIDEÍ ===
+
+/**
+ * Vytvoří video element s podporou pro Safari (HEVC .mov) i ostatní (.webm).
+ */
+function createCrossBrowserVideo(src, showControls = false, autoplay = true) {
+    const video = document.createElement('video');
+    video.muted = true;             
+    video.playsInline = true;       
+    video.disablePictureInPicture = true;
+    
+    if (autoplay) {
+        video.autoplay = true;
+        video.loop = true;
+    }
+    
+    if (showControls) {
+        video.controls = true;
+        video.muted = false; 
+        video.autoplay = false;
+    }
+
+    // === SAFARI DETEKCE & FALLBACK NA .MOV ===
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
+    if (isSafari && src.endsWith('.webm')) {
+        video.src = src.replace('.webm', '.mov');
+    } else {
+        video.src = src;
+    }
+
+    return video;
+}
+
 function preloadLocalVideo(src) {
     // Kontrola, jestli to není URL nebo Vimeo
     const srcParts = src.split('.');
@@ -258,28 +291,10 @@ function loadSpreadItems(spread, itemToSelect = null) {
                 });
 
             } else if (mediaType === 'localVideo') {
-                mediaElement = document.createElement('video');
-                mediaElement.src = mediaSrcPath;
+                mediaElement = createCrossBrowserVideo(mediaSrcPath, showControls, !showControls);
+                mediaElement.classList.add('lightbox-media');
                 mediaElement.dataset.src = mediaSrcPath;
-                if (showControls) {
-                    Object.assign(mediaElement, {
-                        autoplay: false,
-                        loop: true,
-                        muted: true,
-                        playsInline: true,
-                        controls: true,
-                        preload: 'auto' // <-- PŘIDÁNO
-                    });
-                } else {
-                    Object.assign(mediaElement, {
-                        autoplay: false,
-                        loop: true,
-                        muted: true,
-                        playsInline: true,
-                        controls: false,
-                        preload: 'auto' // <-- PŘIDÁNO
-                    });
-                }
+                mediaElement.preload = 'auto';
 
             } else if (mediaType === 'image') {
                 mediaElement = document.createElement('img');
@@ -759,7 +774,20 @@ function setupLightboxControls() {
 }
 
 function wrapPageImages() { document.querySelectorAll(".page-image").forEach(e => { const t = document.createElement("div"); t.className = "page-image-wrapper", e.parentNode.insertBefore(t, e), t.appendChild(e) }) }
-function setupMediaOverlays() { for (const e in mediaOverlays) { const t = mediaOverlays[e], o = document.querySelector(`#p${Math.floor((e - 1) / 2)} ${e % 2 != 0 ? ".back" : ".front"} .page-image-wrapper`); if (o) { const n = document.createElement("video"); n.className = "media-overlay", Object.assign(n, { src: t.src, autoplay: !0, muted: !0, loop: !0, playsInline: !0 }), o.appendChild(n) } } }
+
+function setupMediaOverlays() { 
+    for (const pageNum in mediaOverlays) { 
+        const config = mediaOverlays[pageNum];
+        const spreadIndex = Math.floor((pageNum - 1) / 2);
+        const sideSelector = pageNum % 2 != 0 ? ".back" : ".front";
+        const container = document.querySelector(`#p${spreadIndex} ${sideSelector} .page-image-wrapper`); 
+        if (container) { 
+            const vid = createCrossBrowserVideo(config.src, false, true);
+            vid.className = "media-overlay";
+            container.appendChild(vid); 
+        } 
+    } 
+}
 
 // =================================================================
 //  SPUŠTĚNÍ APLIKACE

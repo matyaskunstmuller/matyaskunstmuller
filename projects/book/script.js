@@ -90,12 +90,17 @@ function createCrossBrowserVideo(src, showControls = false, autoplay = true) {
         video.controls = true;
         video.muted = false; 
         video.autoplay = false;
-    } else {
-        video.className = "media-overlay"; 
-        video.style.objectFit = "contain"; 
     }
 
-    video.src = src;
+    // === SAFARI DETEKCE & FALLBACK NA .MOV ===
+    // Safari (iOS i macOS) vyžaduje HEVC v .mov kontejneru pro průhlednost
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
+    if (isSafari && src.endsWith('.webm')) {
+        video.src = src.replace('.webm', '.mov');
+    } else {
+        video.src = src;
+    }
 
     return video;
 }
@@ -651,6 +656,10 @@ function setupLightboxControls() {
 function wrapPageImages() { document.querySelectorAll(".page-image").forEach(e => { const t = document.createElement("div"); t.className = "page-image-wrapper", e.parentNode.insertBefore(t, e), t.appendChild(e) }) }
 
 function setupMediaOverlays() { 
+    // Pokud skript běží v jiném projektu (např. 1.txt, bez filtru), nenačítáme overlaye z 'book',
+    // protože by překryly stránky a způsobily zaseknutí preloaderu (hledání neexistujících videí).
+    if (!location.href.includes('/book/') && !location.href.includes('bookengine.html')) return;
+
     for (const spreadNum in mediaOverlays) { 
         const config = mediaOverlays[spreadNum];
         
@@ -659,7 +668,7 @@ function setupMediaOverlays() {
             const container = document.querySelector(targetSelector);
             if (container) { 
                 const vid = createCrossBrowserVideo(config.right, false, true);
-                
+                vid.classList.add("media-overlay");
                 container.appendChild(vid); 
             }
         }
@@ -670,7 +679,7 @@ function setupMediaOverlays() {
             const container = document.querySelector(targetSelector);
             if (container) { 
                 const vid = createCrossBrowserVideo(config.left, false, true);
-                
+                vid.classList.add("media-overlay");
                 container.appendChild(vid); 
             }
         }
