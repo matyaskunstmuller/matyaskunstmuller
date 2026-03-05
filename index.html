@@ -1,54 +1,238 @@
 <!DOCTYPE html>
 <html lang="cs">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matyas Kunstmüller - Portfolio</title>
+    <title>Matyas Kunstmüller</title>
     <link rel="stylesheet" href="main_style.css">
     <style>
-        body {
-            background-color: #000;
-            margin: 0;
-            overflow: hidden; /* Zabrání scrollování, pokud se obrázek vejde */
-        }
+        /* ========================
+           CAROUSEL — FULL HEIGHT
+           ======================== */
 
-        /* Zarovnání obsahu na střed */
+        /* Clip carousel inside content area */
         .content-column {
-            display: flex !important;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            width: 100%;
-            padding: 20px;
+            overflow: hidden !important;
         }
 
-        /* Styl pro hlavní obrázek */
-        .hero-image {
-            display: block;
-           /* Aby nepřetekl na šířku (mobil) */
-            max-height: 12vh;     /* Aby nepřetekl na výšku */
-            width: auto;          /* Zachování poměru stran */
-            height: auto;         /* Zachování poměru stran */
-            object-fit: contain;  /* Zajistí, že se obrázek nedeformuje */
+        .carousel-stage {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            /* vertically center items */
         }
-        
+
+        /* The moving track — duplicated for seamless loop */
+        .carousel-track {
+            display: flex;
+            align-items: stretch;
+            height: 100%;
+            /* animation set by JS once track width is known */
+            will-change: transform;
+        }
+
+        .carousel-track.running {
+            animation: scrollLeft linear infinite;
+        }
+
+        @keyframes scrollLeft {
+            from {
+                transform: translateX(0);
+            }
+
+            to {
+                transform: translateX(-50%);
+            }
+        }
+
+        /* Individual items */
+        .c-item {
+            flex: 0 0 auto;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            margin-right: 3px;
+            /* tiny gap between items */
+        }
+
+        .c-item video,
+        .c-item img {
+            height: 100%;
+            width: auto;
+            /* natural width, no distortion */
+            display: block;
+            object-fit: contain;
+            /* never crop */
+            pointer-events: none;
+        }
+
+        /* Links — block so the full area is clickable */
+        .c-item a {
+            display: block;
+            height: 100%;
+            text-decoration: none;
+        }
+
+        /* Pause on hover */
+        .carousel-stage:hover .carousel-track {
+            animation-play-state: paused;
+        }
+
+        /* Mobile: slow it down a bit */
+        @media (max-width: 768px) {
+            .c-item {
+                margin-right: 2px;
+            }
+        }
     </style>
 </head>
-<body>
 
+<body class="page-main">
     <div id="nav-placeholder"></div>
 
     <main class="content-column">
-        <img src="epik shit.png" 
-             class="hero-image" 
-             alt="Mega epik interactive shit">
+        <div class="carousel-stage" id="carouselStage">
+            <div class="carousel-track" id="carouselTrack">
+                <!-- populated by JS -->
+            </div>
+        </div>
     </main>
 
     <script src="nav.js"></script>
     <script>
-        if (typeof createNav === 'function') {
-            createNav('', 'main');
+        if (typeof createNav === 'function') createNav('', 'main');
+
+        /* ==============================================
+           DATA — projects in order, then photo albums
+           interleaved every 3rd project
+           ============================================== */
+
+        // Projects in projekty order
+        const projects = [
+            { src: "projects/projekty/přední desky.webp", type: "img", link: "projects/book/bookengine.html" },
+            { src: "projects/projekty/showcase animace panaček_1.webm", type: "video", link: "projects/bertik/bertik.html" },
+            { src: "projects/projekty/bez filtru_fotodokumentace knížky-10.webp", type: "img", link: "projects/bez filtru/bez.filtru.html" },
+            { src: "projects/projekty/blokkada.webm", type: "video", link: "projects/font/font.html" },
+            { src: "projects/projekty/1-TXT.webm", type: "video", link: "projects/1.txt/1.txt.html" },
+            { src: "projects/projekty/typotrip.webm", type: "video", link: "projects/book/bookengine.html#spread=7" },
+            { src: "projects/projekty/Zelená 2.webm", type: "video", link: "projects/city smog super swag/city smog super swag.html" },
+            { src: "projects/projekty/s3b.webm", type: "video", link: "projects/book/bookengine.html#spread=2" },
+            { src: "projects/projekty/360.webm", type: "video", link: "projects/book/bookengine.html#spread=3" },
+        ];
+
+        /* Items = just projects, no albums */
+        const items = projects;
+
+        /* Build DOM elements */
+        function makeItem(data) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'c-item';
+
+            const a = document.createElement('a');
+            a.href = data.link;
+
+            if (data.type === 'video') {
+                const v = document.createElement('video');
+                v.src = data.src;
+                v.autoplay = true;
+                v.muted = true;
+                v.loop = true;
+                v.playsInline = true;
+                v.preload = "metadata";
+                a.appendChild(v);
+            } else {
+                const img = document.createElement('img');
+                img.src = data.src;
+                img.loading = "lazy";
+                a.appendChild(img);
+            }
+
+            wrapper.appendChild(a);
+            return wrapper;
         }
+
+        /* Populate track */
+        const track = document.getElementById('carouselTrack');
+
+        items.forEach(data => track.appendChild(makeItem(data)));
+
+        /* Seamless loop: clone first, wait for layout to settle, then animate */
+        const originalItems = [...track.children];
+
+        // Step 1: clone all originals immediately
+        originalItems.forEach(child => {
+            track.appendChild(child.cloneNode(true));
+            const v = track.lastChild.querySelector('video');
+            if (v) { v.autoplay = true; v.muted = true; v.loop = true; v.playsInline = true; }
+        });
+
+        track.style.animation = 'none';
+
+        const vw = window.innerWidth;
+        // 10 s per screen width at ~60fps
+        const BASE = vw / (10 * 60);
+        const FRICTION = 0.90;
+        const BOOST = 0.5;
+
+        let singleWidth = 0;
+        let pos = 0;
+        let extra = 0;
+        let started = false;
+
+        // Poll until track width stabilises (images/videos loaded and laid out)
+        let stableCount = 0;
+        let lastWidth = 0;
+
+        function pollWidth() {
+            // sum actual rendered widths of original items only
+            let w = 0;
+            for (let i = 0; i < originalItems.length; i++) {
+                w += track.children[i].getBoundingClientRect().width;
+            }
+            if (w > 100 && Math.abs(w - lastWidth) < 1) {
+                stableCount++;
+            } else {
+                stableCount = 0;
+            }
+            lastWidth = w;
+
+            if (stableCount >= 5) {
+                // Width is stable — start animation
+                singleWidth = w;
+                pos = Math.random() * singleWidth;
+                track.style.transform = `translateX(${-pos}px)`;
+                started = true;
+                requestAnimationFrame(tick);
+            } else {
+                requestAnimationFrame(pollWidth);
+            }
+        }
+
+        function tick() {
+            extra *= FRICTION;
+            pos += BASE + extra;
+            if (pos >= singleWidth) pos -= singleWidth;
+            if (pos < 0) pos += singleWidth;
+            track.style.transform = `translateX(${-pos}px)`;
+            requestAnimationFrame(tick);
+        }
+
+        requestAnimationFrame(pollWidth);
+
+        // Wheel = forward boost only
+        const stage = document.getElementById('carouselStage');
+        stage.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (e.deltaY > 0) {
+                extra += e.deltaY * BOOST;
+                extra = Math.min(extra, 80);
+            }
+            // scroll up ignored
+        }, { passive: false });
     </script>
 </body>
+
 </html>

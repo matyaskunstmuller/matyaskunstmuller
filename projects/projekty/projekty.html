@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html lang="cs">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Projekty - Detail</title>
     <link rel="stylesheet" href="../../main_style.css">
-    
+
     <style>
         /* POJISTKA PÍSMA - Zabraňuje zmenšování navigace */
-        html { 
-            -webkit-text-size-adjust: 100%; 
-            text-size-adjust: 100%; 
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
         }
 
         body {
@@ -43,57 +44,83 @@
 
         /* MASONRY KONTEJNER - Vše v jednom, aby se nic neztrácelo */
         .masonry-container {
-            column-count: 3;
-            column-gap: 35px;
+            display: flex;
+            flex-direction: column;
+            gap: 60px;
             width: 100%;
         }
 
         /* JEDNOTLIVÝ PROJEKT - Stabilní a zapečený */
         .projekt-item {
-            display: inline-block; /* Zásadní: drží blok pohromadě */
             width: 100%;
-            margin-bottom: 50px;
-            break-inside: avoid; /* Zamezí roztržení textu mezi sloupce */
             line-height: 1.4;
             color: #ccc;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
         }
 
         .projekt-item a {
+            display: flex;
+            flex-direction: row;
+            gap: 30px;
             color: #fff;
             text-decoration: none;
             transition: opacity 0.2s;
+            align-items: flex-start;
         }
 
-        .projekt-item a:hover { opacity: 0.8; }
+        .projekt-item a:hover {
+            opacity: 0.8;
+        }
+
+        .banner-container {
+            flex: 0 0 33.333%;
+            max-width: 33.333%;
+        }
 
         .banner {
             width: 100%;
             height: auto;
             display: block;
-            margin-bottom: 15px;
-            /* Pomáhá plynulosti touchpadu, aby se "nezadrhával" o videa */
-            pointer-events: none; 
+            margin-bottom: 0;
+            pointer-events: none;
+            object-fit: contain;
+        }
+
+        .projekt-text-container {
+            flex: 1;
+            max-width: 600px;
+            /* Omezí šířku textu pro lepší čitelnost */
+            display: flex;
+            flex-direction: column;
         }
 
         .projekt-title {
-            font-weight: bold;
+            font-weight: normal;
             display: block;
-            color: #fff;
+            color: #ccc;
             margin-bottom: 5px;
+            font-size: 0.85rem;
         }
 
         /* RESPONZIVITA - Automatické přeskládání bez mizení obsahu */
-        @media (max-width: 1200px) {
-            .masonry-container { column-count: 2; }
-        }
-
         @media (max-width: 768px) {
-            .masonry-container { column-count: 1; }
-            .projekty-text-wrapper { padding: 5rem 1.5rem 2rem 1.5rem; }
+            .projekt-item a {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .banner-container {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            .projekty-text-wrapper {
+                padding: 5rem 1.5rem 2rem 1.5rem;
+            }
         }
     </style>
 </head>
+
 <body>
     <div id="nav-placeholder"></div>
 
@@ -101,78 +128,157 @@
         <div class="projekty-text-wrapper">
 
             <span class="year-label">2025</span>
-            
+
             <div class="masonry-container">
-                
+
                 <div class="projekt-item">
                     <a href="../book/bookengine.html">
-                        <img src="přední desky.webp" class="banner">
-                        <span class="projekt-title">Portfolio 25</span>
-                    Proof of concept portfolio ve formě simulace skicáku pro zachycení projektů z více osobního a autorského hlediska.
+                        <div class="banner-container">
+                            <img src="přední desky.webp" class="banner" loading="lazy">
+                        </div>
+                        <div class="projekt-text-container">
+                            <span class="projekt-title">Portfolio 25</span>
+                            Proof of concept portfolio ve formě simulace skicáku pro zachycení projektů z více osobního
+                            a
+                            autorského hlediska.
+                        </div>
                     </a>
                 </div>
 
                 <div class="projekt-item">
                     <a href="../bertik/bertik.html">
-                        <video src="showcase animace panaček_1.webm" class="banner" autoplay muted loop playsinline></video>
-                        <span class="projekt-title">bertik</span>
-                        Počítačový program který zachycuje vzpomínky. Zaměřuje se na schopnost paměti, a co představuje v tom nejzákladnějším. Dělají z bertíka vzpomínky víc než jen stroj? A co znamenají vzpomínky pro člověka?
+                        <div class="banner-container">
+                            <video src="showcase animace panaček_1.webm" class="banner" autoplay muted loop
+                                playsinline></video>
+                        </div>
+                        <div class="projekt-text-container">
+                            <span class="projekt-title">bertik</span>
+                            Počítačový program který zachycuje vzpomínky. Zaměřuje se na schopnost paměti, a co
+                            představuje
+                            v tom nejzákladnějším. Dělají z bertíka vzpomínky víc než jen stroj? A co znamenají
+                            vzpomínky
+                            pro člověka?
+                        </div>
                     </a>
                 </div>
 
                 <div class="projekt-item">
                     <a href="../bez filtru/bez.filtru.html">
-                        <img src="bez filtru_fotodokumentace knížky-10.webp" class="banner">
-                        <span class="projekt-title">Bez filtru</span>
-                        Autorský deník zachycující období prozkoumávání modifikací kompaktu. Fotografie jsou doplněné o autorské vstupy vložené přímo do obrazu, které popisují tvůrčí proces a vývoj celého projektu.
+                        <div class="banner-container">
+                            <img src="bez filtru_fotodokumentace knížky-10.webp" class="banner" loading="lazy">
+                        </div>
+                        <div class="projekt-text-container">
+                            <span class="projekt-title">Bez filtru</span>
+                            Autorský deník zachycující období prozkoumávání modifikací kompaktu. Fotografie jsou
+                            doplněné o
+                            autorské vstupy vložené přímo do obrazu, které popisují tvůrčí proces a vývoj celého
+                            projektu.
+                        </div>
                     </a>
                 </div>
 
                 <div class="projekt-item">
                     <a href="../font/font.html">
-                        <video src="blokkada.webm" class="banner" autoplay muted loop playsinline></video>
-                        <span class="projekt-title">Blokkada</span>
-                        Autorský variable font, jehož cílem bylo prozkoumat technické a kreativní možnosti proměnlivého písma. Jeho design vychází z geometrického gridu 3×8 a je charakteristický motivem dvojitých spojů. Font disponuje dvěma proměnnými osami, které ovládají výšku a tloušťku tahu. Projekt se vyvinul od skic na papíře až po finální zpracování v programu FontLab, kde byly definovány mastry a logika interpolace.
+                        <div class="banner-container">
+                            <video src="blokkada.webm" class="banner" autoplay muted loop playsinline></video>
+                        </div>
+                        <div class="projekt-text-container">
+                            <span class="projekt-title">Blokkada</span>
+                            Autorský variable font, jehož cílem bylo prozkoumat technické a kreativní možnosti
+                            proměnlivého
+                            písma. Jeho design vychází z geometrického gridu 3×8 a je charakteristický motivem dvojitých
+                            spojů. Font disponuje dvěma proměnnými osami, které ovládají výšku a tloušťku tahu. Projekt
+                            se
+                            vyvinul od skic na papíře až po finální zpracování v programu FontLab, kde byly definovány
+                            mastry a logika interpolace.
+                        </div>
                     </a>
                 </div>
 
                 <div class="projekt-item">
                     <a href="../1.txt/1.txt.html">
-                        <video src="1-TXT.webm" class="banner" autoplay muted loop playsinline></video>
-                        <span class="projekt-title">1.TXT</span>
-                        Otevřený projekt založený na spontánním sběru scenů pomocí ručního skeneru. Během každodenního pohybu v prostoru skenuji povrchy a materiály, které mě vizuálně zaujmou. Výsledné skeny jsou prezentovány jako abstraktní textury zbavené původního kontextu, čímž je kladen důraz na jejich samostatný vizuální potenciál.
+                        <div class="banner-container">
+                            <video src="1-TXT.webm" class="banner" autoplay muted loop playsinline></video>
+                        </div>
+                        <div class="projekt-text-container">
+                            <span class="projekt-title">1.TXT</span>
+                            Otevřený projekt založený na spontánním sběru scenů pomocí ručního skeneru. Během
+                            každodenního
+                            pohybu v prostoru skenuji povrchy a materiály, které mě vizuálně zaujmou. Výsledné skeny
+                            jsou
+                            prezentovány jako abstraktní textury zbavené původního kontextu, čímž je kladen důraz na
+                            jejich
+                            samostatný vizuální potenciál.
+                        </div>
                     </a>
                 </div>
 
                 <div class="projekt-item">
                     <a href="../book/bookengine.html?spread=7">
-                        <video src="typotrip.webm" class="banner" autoplay muted loop playsinline></video>
-                        <span class="projekt-title">Typotrip</span>
-                        Koncepční návrh vizuální identity pro třídní výstavu. Ve frustraci nepovedených návrhů jsem se rozhodl pro použití fotografií divokého prostoru ve kterém se vystavovalo, a pro zvýraznění jeho charakteru jsem fotky upravil do silně neonových barev. Série fotografií mě bavila ale samotné fotografie na plakát nestačili a tak jsem se rozhodl pro prosákávání fotografií do loopu v motion posteru pro ukázání celého prostoru.
+                        <div class="banner-container">
+                            <video src="typotrip.webm" class="banner" autoplay muted loop playsinline></video>
+                        </div>
+                        <div class="projekt-text-container">
+                            <span class="projekt-title">Typotrip</span>
+                            Koncepční návrh vizuální identity pro třídní výstavu. Ve frustraci nepovedených návrhů jsem
+                            se
+                            rozhodl pro použití fotografií divokého prostoru ve kterém se vystavovalo, a pro zvýraznění
+                            jeho
+                            charakteru jsem fotky upravil do silně neonových barev. Série fotografií mě bavila ale
+                            samotné
+                            fotografie na plakát nestačili a tak jsem se rozhodl pro prosákávání fotografií do loopu v
+                            motion posteru pro ukázání celého prostoru.
+                        </div>
                     </a>
                 </div>
-                
+
                 <div class="projekt-item">
                     <a href="../city smog super swag/city smog super swag.html">
-                        <video src="Zelená 2.webm" class="banner" autoplay muted loop playsinline></video>
-                        <span class="projekt-title">City smog super swag</span>
-                        Vizuální experiment zkoumající rytmus města, dopravní signalizace a industriální estetiku. Projekt využívá smyčky videí (loops), které se dynamicky přepínají v reakci na "časovač" nebo interakci uživatele.
+                        <div class="banner-container">
+                            <video src="Zelená 2.webm" class="banner" autoplay muted loop playsinline></video>
+                        </div>
+                        <div class="projekt-text-container">
+                            <span class="projekt-title">City smog super swag</span>
+                            Vizuální experiment zkoumající rytmus města, dopravní signalizace a industriální estetiku.
+                            Projekt využívá smyčky videí (loops), které se dynamicky přepínají v reakci na "časovač"
+                            nebo
+                            interakci uživatele.
+                        </div>
                     </a>
                 </div>
 
                 <div class="projekt-item">
                     <a href="../book/bookengine.html?spread=2">
-                        <video src="s3b.webm" class="banner" autoplay muted loop playsinline></video>
-                        <span class="projekt-title">S3B</span>
-                        Triptych animovaných plakátů, který vizuálně interpretuje tři stavy studentského života: školní tlak, nemoc a volný čas. Každý stav je reprezentován symbolickým objektem a citátem doprovázenými simulací tiskové bitmapy a abstraktní deformací obrazu. Projekt byl záměrným experimentem s cílem naučit se základy motion designu, přičemž textura a bitmapa byly vytvořeny ve Photoshopu a animace a deformace v After Effects.
+                        <div class="banner-container">
+                            <video src="s3b.webm" class="banner" autoplay muted loop playsinline></video>
+                        </div>
+                        <div class="projekt-text-container">
+                            <span class="projekt-title">S3B</span>
+                            Triptych animovaných plakátů, který vizuálně interpretuje tři stavy studentského života:
+                            školní
+                            tlak, nemoc a volný čas. Každý stav je reprezentován symbolickým objektem a citátem
+                            doprovázenými simulací tiskové bitmapy a abstraktní deformací obrazu. Projekt byl záměrným
+                            experimentem s cílem naučit se základy motion designu, přičemž textura a bitmapa byly
+                            vytvořeny
+                            ve Photoshopu a animace a deformace v After Effects.
+                        </div>
                     </a>
                 </div>
 
                 <div class="projekt-item">
                     <a href="../book/bookengine.html?spread=3">
-                        <video src="360.webm" class="banner" autoplay muted loop playsinline></video>
-                        <span class="projekt-title">360</span>
-                        Myšlenku k tomuto projektu se staly práce studentů přípravných kurzů, jejichž různorodé přístupy, ať už jak pracují s uhlem nebo samotná perspektiva. I přes to že jsem studii perspektivy viděl a dělal nespočetněkrát, jsem po kolečku kolem stojanů začal vnímat víc, než jen baličák, uhel a iluzi. Právě jejich propojení jako celku pro mne vytvořilo hlubší význam.
+                        <div class="banner-container">
+                            <video src="360.webm" class="banner" autoplay muted loop playsinline></video>
+                        </div>
+                        <div class="projekt-text-container">
+                            <span class="projekt-title">360</span>
+                            Myšlenku k tomuto projektu se staly práce studentů přípravných kurzů, jejichž různorodé
+                            přístupy, ať už jak pracují s uhlem nebo samotná perspektiva. I přes to že jsem studii
+                            perspektivy viděl a dělal nespočetněkrát, jsem po kolečku kolem stojanů začal vnímat víc,
+                            než
+                            jen baličák, uhel a iluzi. Právě jejich propojení jako celku pro mne vytvořilo hlubší
+                            význam.
+                        </div>
                     </a>
                 </div>
 
@@ -181,9 +287,13 @@
             <div class="masonry-container">
                 <div class="projekt-item">
                     <a href="../portfolio 24/portfolio 24.html">
-                        <img src="Matyas Kunstmüller - Portfolio-komprimovaný-1.webp" class="banner">
-                        <span class="projekt-title">Portfolio 24</span>
-                        Na zkoušku pro dny otevřených dveří na vysokých školách pro konzultace prací.
+                        <div class="banner-container">
+                            <img src="Matyas Kunstmüller - Portfolio-komprimovaný-1.webp" class="banner" loading="lazy">
+                        </div>
+                        <div class="projekt-text-container">
+                            <span class="projekt-title">Portfolio 24</span>
+                            Na zkoušku pro dny otevřených dveří na vysokých školách pro konzultace prací.
+                        </div>
                     </a>
                 </div>
             </div>
@@ -198,4 +308,5 @@
         }
     </script>
 </body>
+
 </html>

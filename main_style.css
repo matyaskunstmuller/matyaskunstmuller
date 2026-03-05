@@ -9,7 +9,8 @@
     box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
     height: 100%;
     margin: 0;
 }
@@ -22,13 +23,15 @@ body {
     display: flex;
 }
 
+/* ========================================= */
+/* ====== HEADER & NAVIGATION STYLES ======= */
+/* ========================================= */
+
 .project-list ul {
     list-style: none;
     padding: 0;
     margin: 0;
 }
-
-
 
 /* Spacer */
 .project-list li.nav-spacer {
@@ -45,7 +48,8 @@ body {
     font-size: 1rem;
 }
 
-.project-list a:hover, .project-list a.active {
+.project-list a:hover,
+.project-list a.active {
     color: #fff;
 }
 
@@ -105,7 +109,7 @@ li.open .nav-expand-arrow::after {
 }
 
 /* Sub-nav */
-.project-list li > .sub-nav {
+.project-list li>.sub-nav {
     list-style: none;
     padding: 0;
     margin: 0;
@@ -116,15 +120,14 @@ li.open .nav-expand-arrow::after {
     transition: max-height 0.4s ease-in-out, opacity 0.2s ease-in-out, margin-top 0.1s;
 }
 
-.project-list li.open > .sub-nav {
+.project-list li.open>.sub-nav {
     max-height: 1000px;
     opacity: 1;
     margin-top: 0.8rem;
 }
 
-/* ZMĚNA: ODSTRANĚN MARGIN, KTERÝ JSEM PŘIDAL */
 .sub-nav-item {
-    margin-bottom: 5px; 
+    margin-bottom: 5px;
 }
 
 .sub-nav-item a {
@@ -142,6 +145,46 @@ li.open .nav-expand-arrow::after {
     font-weight: bold;
 }
 
+/* --- Vnořené menu (Portfolio 25) --- */
+.nested-sub-nav {
+    padding-left: 15px !important;
+}
+
+.project-list li.open>.nested-sub-nav {
+    margin-top: 0.3rem !important;
+}
+
+.portfolio-sub-nav-item {
+    margin-top: 0 !important;
+    margin-bottom: 4.5px !important;
+}
+
+.portfolio-sub-nav-item .nav-row {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Zmenšená šipka pro Portfolio */
+.nested-arrow {
+    padding: 4px !important;
+    margin-left: 2px !important;
+}
+
+.nested-arrow::after {
+    width: 6px !important;
+    height: 6px !important;
+    border-width: 1.5px !important;
+    border-color: #888 !important;
+}
+
+.nested-arrow.is-active-link::after {
+    border-color: #fff !important;
+}
+
+li.portfolio-sub-nav-item.open .nested-arrow::after {
+    margin-top: -2px !important;
+}
+
 /* Desktop Nav */
 #desktop-nav {
     width: var(--nav-width);
@@ -155,15 +198,15 @@ li.open .nav-expand-arrow::after {
     padding: 1.5rem;
     border-right: 0px solid #333;
 }
+
 .desktop-toggle-btn:hover {
-    border-color: #fff; /* Efekt při najetí myší */
+    border-color: #fff;
 }
 
-/* Co se stane, když se menu zavře */
 body.desktop-nav-closed .desktop-toggle-btn {
-    /* Tlačítko zajede k levému okraji */
-    left: 265px; 
+    left: 265px;
 }
+
 .desktop-toggle-btn {
     position: fixed;
     z-index: 1100;
@@ -192,13 +235,13 @@ body.desktop-nav-closed .desktop-toggle-btn {
     border-left: 2px solid #888;
     transform: rotate(-45deg);
     transition: transform 0.2s, margin 0.2s;
-    margin-left: 3px; 
+    margin-left: 3px;
     margin-top: 1px;
 }
 
 body.desktop-nav-closed .desktop-toggle-btn::before {
     transform: rotate(135deg);
-    margin-left: -3px; /* Posune šipku zpět doleva */
+    margin-left: -3px;
     margin-top: 1px;
 }
 
@@ -223,7 +266,13 @@ body.desktop-nav-closed #desktop-nav {
 body.desktop-nav-closed .content-column {
     margin-left: 0;
     width: 100%;
-    padding-left: 40px
+}
+
+/* Home page: horizontal scroll only on .page-main body */
+body.page-main .content-column {
+    overflow-y: hidden;
+    overflow-x: scroll;
+    scroll-behavior: smooth;
 }
 
 /* Mobile Nav */
@@ -312,7 +361,120 @@ body {
     display: block !important;
 }
 
-/* Projects */
+/* ========================================= */
+/* ====== MOSAIC GALLERY MAIN PAGE ======= */
+/* ========================================= */
+
+.gallery-container {
+    height: 100vh;
+    width: fit-content;
+    min-width: 100%;
+    padding: 0;
+}
+
+/* Base Mosaic Grid - Desktop rozložení */
+.gallery-grid {
+    display: grid;
+    grid-template-rows: repeat(6, calc(100vh / 6));
+    grid-auto-flow: column dense;
+    grid-auto-columns: calc(100vh / 6);
+    gap: 0;
+    height: 100vh;
+}
+
+.gallery-item {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    background: #111;
+    /* fallback */
+    border: 1px solid #000;
+    /* Subtle separator for mosaic */
+}
+
+/* Hover efekt - přiblížení */
+.gallery-item video,
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease-out, filter 0.3s;
+}
+
+.gallery-item:hover video,
+.gallery-item:hover img {
+    transform: scale(1.05);
+    filter: brightness(1.2);
+}
+
+/* Rozměry dlaždic */
+.span-1x1 {
+    grid-row: span 2;
+    grid-column: span 2;
+    /* 2x2 grid blocks => square */
+}
+
+.span-2x1 {
+    grid-row: span 2;
+    grid-column: span 4;
+    /* 4 široký x 2 vysoký => horizontální obdélník */
+}
+
+.span-1x2 {
+    grid-row: span 4;
+    grid-column: span 2;
+    /* 2 široký x 4 vysoký => vertikální obdélník */
+}
+
+.span-2x2 {
+    grid-row: span 4;
+    grid-column: span 4;
+    /* 4x4 grid blocks => large square */
+}
+
+.span-3x2 {
+    grid-row: span 4;
+    grid-column: span 6;
+    /* extra velký horizontální obdélník */
+}
+
+/* Overlay text na hover */
+.gallery-item-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 1.5rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    /* Kliknutí propadne na container */
+    display: flex;
+    flex-direction: column;
+}
+
+.gallery-item:hover .gallery-item-overlay {
+    opacity: 1;
+}
+
+.gallery-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-shadow: 1px 1px 3px #000;
+}
+
+.gallery-subtitle {
+    font-size: 0.9rem;
+    color: #ccc;
+}
+
+
+/* ========================================= */
+/* ====== OLD PROJECTS PREVIEW STYLES ====== */
+/* ========================================= */
 .projekty-list-container {
     padding: 1.5rem;
     max-width: 900px;
@@ -357,13 +519,20 @@ body {
     display: block;
 }
 
-.project-preview img, .project-preview video {
+.project-preview img,
+.project-preview video {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-@media (max-width: 768px), (orientation: portrait) {
+
+/* ========================================= */
+/* =========== MEDIA QUERIES =============== */
+/* ========================================= */
+
+@media (max-width: 768px),
+(orientation: portrait) {
     #desktop-nav {
         display: none !important;
     }
@@ -374,11 +543,17 @@ body {
 
     body {
         display: block;
+        overflow-y: auto;
+        /* Důležité pro mobilní vertical scroll */
+        overflow-x: hidden;
     }
 
     .content-column {
         width: 100%;
         margin-left: 0;
+        height: auto;
+        overflow: visible;
+        /* Zbavíme se vnitřního scrollování */
     }
 
     body.mobile-nav-open .content-column {
@@ -390,6 +565,54 @@ body {
         margin-left: 0;
     }
 
+    /* Změna Mosaic Gallery na mobilní vertikální zobrazení */
+    .gallery-container {
+        width: 100%;
+        min-width: 100%;
+        height: auto;
+        padding: 5rem 1rem 1rem 1rem;
+        /* Nahoře padding kvůli mobilní navigaci */
+    }
+
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        /* 2 sloupce dense layout */
+        grid-auto-flow: row dense;
+        grid-auto-rows: 25vw;
+        /* menší rozlišení pro výšku řádků */
+        gap: 0;
+        height: auto;
+    }
+
+    /* Na mobilu se spany mírně modifikují, aby neposkládaly 6 řádků mimo šířku (protože šířka jsou max 2 sloupce) */
+    .span-1x1 {
+        grid-row: span 1;
+        grid-column: span 1;
+    }
+
+    .span-2x1 {
+        grid-row: span 1;
+        grid-column: span 2;
+    }
+
+    .span-1x2 {
+        grid-row: span 2;
+        grid-column: span 1;
+    }
+
+    .span-2x2 {
+        grid-row: span 2;
+        grid-column: span 2;
+    }
+
+    .span-3x2 {
+        grid-row: span 2;
+        grid-column: span 2;
+    }
+
+
+    /* Zbytek (staré projekty) */
     .projekty-list-container {
         padding: 1.5rem 1rem;
     }

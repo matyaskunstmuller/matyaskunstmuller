@@ -14,25 +14,20 @@ function createNav(relativePath = '', activePageID = '') {
                     </a>`,
 
         omne: `<a href="${relativePath}o-mne/omne.html" class="${activePageID === 'omne' ? 'active' : ''}">O mně</a>`,
-        
-        portfolio: `<a href="${relativePath}projects/book/bookengine.html" 
-                       class="${activePageID.startsWith('portfolio') ? 'active' : ''}">
-                       Portfolio
-                    </a>`,
-        
+
         projekty: `<a href="${relativePath}projects/projekty/projekty.html" 
-                       class="${activePageID.startsWith('projekty') ? 'active' : ''}">
+                       class="${(activePageID.startsWith('projekty') || activePageID.startsWith('portfolio')) ? 'active' : ''}">
                        Projekty
                     </a>`,
-        
+
         fotky: `<a href="${relativePath}projects/fotky/fotky.html" class="${activePageID === 'fotky' ? 'active' : ''}">Fotky</a>`
     };
 
     // --- 2. Definice Ikonek (SVG) a Odkazů ---
     // ZDE SI UPRAV ODKAZY NA SVŮJ INSTAGRAM A EMAIL
     const socialLinks = {
-        instagram: "https://www.instagram.com/vymalovano_mk/", 
-        
+        instagram: "https://www.instagram.com/vymalovano_mk/",
+
     };
 
     const icons = {
@@ -58,6 +53,12 @@ function createNav(relativePath = '', activePageID = '') {
 
     // Pod-menu Projekty
     const projektySubNav = [
+        {
+            id: 'portfolio',
+            href: `${relativePath}projects/book/bookengine.html`,
+            text: 'Portfolio 25',
+            children: portfolioSubNav
+        },
         { id: 'projekty-bertik', href: `${relativePath}projects/bertik/bertik.html`, text: 'Bertík' },
         { id: 'projekty-bezfiltru', href: `${relativePath}projects/bez filtru/bez.filtru.html`, text: 'Bez filtru' },
         { id: 'projekty-blokkada', href: `${relativePath}projects/font/font.html`, text: 'Blokkada' },
@@ -66,15 +67,32 @@ function createNav(relativePath = '', activePageID = '') {
     ];
 
     function buildSubNav(items) {
-        let html = '<ul class="sub-nav">';
+        let html = '<ul class="sub-nav nested-sub-nav">';
         for (const item of items) {
-            const isActive = (item.id === activePageID);
+            let isActive = false;
+            if (item.id === activePageID) isActive = true;
+
             const targetAttr = item.target ? `target="${item.target}"` : '';
-            html += `<li class="sub-nav-item">
-                         <a href="${item.href}" ${targetAttr} class="${isActive ? 'active-sub' : ''}">
-                           ${item.text}
-                         </a>
-                     </li>`;
+
+            if (item.children) {
+                // Otevře se jen pokud je načten konkrétní spread (tzn. ID začíná např. 'portfolio-s')
+                const isOpen = activePageID.startsWith('portfolio-') ? 'open' : '';
+                html += `<li class="sub-nav-item has-submenu portfolio-sub-nav-item ${isOpen}">
+                             <div class="nav-row">
+                               <a href="${item.href}" ${targetAttr} class="${isActive ? 'active-sub' : ''}">
+                                 ${item.text}
+                               </a>
+                               <span class="nav-expand-arrow nested-arrow ${isActive ? 'is-active-link' : ''}" aria-label="Rozbalit ${item.text}"></span>
+                             </div>
+                             ${buildSubNav(item.children)}
+                         </li>`;
+            } else {
+                html += `<li class="sub-nav-item">
+                             <a href="${item.href}" ${targetAttr} class="${isActive ? 'active-sub' : ''}">
+                               ${item.text}
+                             </a>
+                         </li>`;
+            }
         }
         html += '</ul>';
         return html;
@@ -84,25 +102,15 @@ function createNav(relativePath = '', activePageID = '') {
     let navHTML = '<nav class="project-list"><ul>';
 
     navHTML += `<li>${mainLinks.main}</li>`;
-    navHTML += `<li class="nav-spacer"></li>`; 
-    navHTML += `<li class="nav-spacer"></li>`; 
+    navHTML += `<li class="nav-spacer"></li>`;
+    navHTML += `<li class="nav-spacer"></li>`;
     navHTML += `<li>${mainLinks.omne}</li>`;
     navHTML += `<li class="nav-spacer"></li>`;
-    
-    // Sekce Portfolio
-    const isPortfolioOpen = activePageID.startsWith('portfolio') ? 'open' : '';
-    navHTML += `<li class="has-submenu ${isPortfolioOpen}">`;
-    navHTML += `<div class="nav-row">`;
-    navHTML += mainLinks.portfolio;
-    navHTML += `<span class="nav-expand-arrow" aria-label="Rozbalit Portfolio"></span>`;
-    navHTML += `</div>`;
-    navHTML += buildSubNav(portfolioSubNav);
-    navHTML += `</li>`;
-    
-    navHTML += `<li class="nav-spacer"></li>`;
-    
+
+    // Sekce Portfolio byla přesunuta pouze na stránku Projekty
+
     // Sekce Projekty
-    const isProjektyOpen = activePageID.startsWith('projekty') ? 'open' : '';
+    const isProjektyOpen = (activePageID.startsWith('projekty') || activePageID.startsWith('portfolio')) ? 'open' : '';
     navHTML += `<li class="has-submenu ${isProjektyOpen}">`;
     navHTML += `<div class="nav-row">`;
     navHTML += mainLinks.projekty;
@@ -112,7 +120,7 @@ function createNav(relativePath = '', activePageID = '') {
     navHTML += `</li>`;
 
     navHTML += `<li class="nav-spacer"></li>`;
-    
+
     // Odkaz na Fotky
     navHTML += `<li>${mainLinks.fotky}</li>`;
 
