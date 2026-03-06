@@ -26,7 +26,7 @@ function createNav(relativePath = '', activePageID = '') {
     // --- 2. Definice Ikonek (SVG) a Odkazů ---
     // ZDE SI UPRAV ODKAZY NA SVŮJ INSTAGRAM A EMAIL
     const socialLinks = {
-        instagram: "https://www.instagram.com/vymalovano_mk/",
+        instagram: "https://www.instagram.com/matyas_kunstmuller/",
 
     };
 
