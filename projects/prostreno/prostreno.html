@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prostřeno</title>
+
+    <link rel="stylesheet" href="../../main_style.css">
+    <link rel="stylesheet" href="prostreno.css">
+</head>
+<body>
+    <div id="nav-placeholder"></div>
+
+    <main class="content-column full-bleed">
+        <div class="prostreno-layout">
+
+            <!-- SECTION: TRAILER -->
+            <div class="media-section">
+                <h2 class="section-title">Trailer</h2>
+                <div class="video-container" id="trailer-container">
+                    <div class="video-placeholder" id="play-trailer-btn">
+                        <img src="../projekty/prostreno.webp" alt="Trailer Thumbnail" class="video-thumb">
+                        <div class="play-button-overlay">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: PLAYLIST -->
+            <div class="media-section">
+                <h2 class="section-title">Všechny epizody</h2>
+                <a href="https://youtube.com/playlist?list=PLoG_-AzGb_Qd6TP8kBchFZg7p3t_NSxM0&si=HCPs5hguSs8pnEF7" target="_blank" rel="noopener noreferrer" class="playlist-text-link">
+                    https://youtube.com/playlist?list=PLoG_-AzGb_Qd6TP8kBchFZg7p3t_NSxM0&si=HCPs5hguSs8pnEF7
+                </a>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="../../nav.js"></script>
+    <script>
+        if (typeof createNav === 'function') {
+            createNav('../../', 'projekty-prostreno');
+        }
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const playBtn = document.getElementById('play-trailer-btn');
+            const container = document.getElementById('trailer-container');
+
+            if (playBtn && container) {
+                playBtn.addEventListener('click', () => {
+                    container.innerHTML = `
+                        <video src="trailer.mp4" controls autoplay class="video-player"></video>
+                    `;
+                });
+            }
+        });
+    </script>
+</body>
+</html>

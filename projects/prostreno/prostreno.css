@@ -1,0 +1,153 @@
+/* * 1. Úprava hlavního sloupce */
+.content-column.full-bleed {
+    padding: 0;
+    position: relative;
+    height: 100vh;
+    overflow-y: auto;
+    background-color: #000; /* Změna na čistou černou jako zbytek webu */
+    scrollbar-width: thin;
+    scrollbar-color: #333 #000;
+}
+
+.content-column.full-bleed::-webkit-scrollbar {
+    width: 6px;
+}
+
+.content-column.full-bleed::-webkit-scrollbar-thumb {
+    background-color: #333;
+    border-radius: 3px;
+}
+
+/* ==================================== */
+/* === CELKOVÉ ROZLOŽENÍ ===            */
+/* ==================================== */
+
+.prostreno-layout {
+    max-width: 960px;
+    margin: 0;
+    padding: 3rem 3rem 5rem 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+}
+
+.media-section {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* Nadpis sekce upravený přesně podle .year-label ze zbytku webu */
+.section-title {
+    color: #ccc;
+    font-size: 0.8rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: sans-serif;
+    margin: 0 0 1.5rem 0;
+    border-left: none; /* Odstraněna červená čárka */
+    padding-left: 0;
+}
+
+/* ==================================== */
+/* === VIDEO & TRAILER sekce ===        */
+/* ==================================== */
+
+.video-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: #000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.video-container iframe,
+.video-placeholder,
+.video-player {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.video-player {
+    object-fit: contain;
+}
+
+.video-placeholder {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.65;
+    transition: opacity 0.3s ease, filter 0.3s ease;
+    filter: grayscale(20%);
+}
+
+.video-placeholder:hover .video-thumb {
+    opacity: 0.85;
+    filter: grayscale(0%);
+}
+
+/* Play button overlay: pouze bílý trojúhelník, bez kruhu a akcentu */
+.play-button-overlay {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.7); /* jemná průhlednost pro splynutí */
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.play-button-overlay svg {
+    width: 70px;
+    height: 70px;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+}
+
+.video-placeholder:hover .play-button-overlay {
+    transform: scale(1.15);
+    color: #ffffff; /* plná bílá na hover */
+}
+
+/* ==================================== */
+/* === PLAYLIST sekce ===               */
+/* ==================================== */
+
+.playlist-text-link {
+    color: #888;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-family: sans-serif;
+    transition: color 0.2s;
+    word-break: break-all;
+    display: inline-block;
+}
+
+.playlist-text-link:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+/* Mobile responsive fixes */
+@media (max-width: 768px) {
+    .prostreno-layout {
+        padding: 5rem 1.5rem 2rem 1.5rem;
+        gap: 3rem;
+    }
+
+    .play-button-overlay svg {
+        width: 55px;
+        height: 55px;
+    }
+}
