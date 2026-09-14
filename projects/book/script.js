@@ -148,6 +148,9 @@ function updateBook(spread) {
     if (currentIntSpread !== lastRenderedSpread) {
         renderButtons(currentIntSpread);
         managePageLoading(spread);
+        if (typeof loadMediaOverlaysForSpread === 'function') {
+            loadMediaOverlaysForSpread(currentIntSpread);
+        }
         lastRenderedSpread = currentIntSpread;
     }
 }
@@ -284,6 +287,20 @@ function loadSpreadItems(spread, itemToSelect = null) {
                 mediaElement = createCrossBrowserVideo(mediaSrcPath, showControls, !showControls);
                 mediaElement.classList.add('lightbox-media');
                 mediaElement.dataset.src = mediaSrcPath;
+                
+                // Přidání indikátoru načítání
+                mediaElement.addEventListener('waiting', () => {
+                    const loader = document.getElementById('lightbox-loader');
+                    if (loader) loader.classList.add('active');
+                });
+                mediaElement.addEventListener('playing', () => {
+                    const loader = document.getElementById('lightbox-loader');
+                    if (loader) loader.classList.remove('active');
+                });
+                mediaElement.addEventListener('canplay', () => {
+                    const loader = document.getElementById('lightbox-loader');
+                    if (loader) loader.classList.remove('active');
+                });
 
             } else if (mediaType === 'image') {
                 mediaElement = document.createElement('img');
@@ -375,6 +392,19 @@ function updateLightboxView() {
     if (spreadItems.length === 0) return;
     const prevIndex = (currentSpreadItemIndex - 1 + spreadItems.length) % spreadItems.length;
     const nextIndex = (currentSpreadItemIndex + 1) % spreadItems.length;
+    
+    // Ukažme loader hned při přepnutí (pokud se přepíná na video)
+    const loader = document.getElementById('lightbox-loader');
+    if (loader) {
+        const activeItem = spreadItems[currentSpreadItemIndex];
+        const activeVideo = activeItem.querySelector('video');
+        if (activeVideo && activeVideo.readyState < 3) {
+            loader.classList.add('active');
+        } else {
+            loader.classList.remove('active');
+        }
+    }
+
     spreadItems.forEach((item, index) => {
         item.classList.remove('active', 'prev', 'next');
         const video = item.querySelector('video');
@@ -655,18 +685,20 @@ function setupLightboxControls() {
 
 function wrapPageImages() { document.querySelectorAll(".page-image").forEach(e => { const t = document.createElement("div"); t.className = "page-image-wrapper", e.parentNode.insertBefore(t, e), t.appendChild(e) }) }
 
-function setupMediaOverlays() { 
+function loadMediaOverlaysForSpread(currentIntSpread) { 
     // Pokud skript běží v jiném projektu (např. 1.txt, bez filtru), nenačítáme overlaye z 'book',
     // protože by překryly stránky a způsobily zaseknutí preloaderu (hledání neexistujících videí).
     if (!location.href.includes('/book/') && !location.href.includes('bookengine.html')) return;
 
-    for (const spreadNum in mediaOverlays) { 
-        const config = mediaOverlays[spreadNum];
-        
+    // Load overlays for current and adjacent spreads
+    for (let i = currentIntSpread - 1; i <= currentIntSpread + 1; i++) {
+        const config = mediaOverlays[i];
+        if (!config) continue;
+
         if (config.right) {
-            const targetSelector = `#p${spreadNum} .front .page-image-wrapper`;
+            const targetSelector = `#p${i} .front .page-image-wrapper`;
             const container = document.querySelector(targetSelector);
-            if (container) { 
+            if (container && !container.querySelector('.media-overlay')) { 
                 const vid = createCrossBrowserVideo(config.right, false, true);
                 vid.classList.add("media-overlay");
                 container.appendChild(vid); 
@@ -674,10 +706,10 @@ function setupMediaOverlays() {
         }
 
         if (config.left) {
-            const prevPaperIndex = parseInt(spreadNum) - 1;
+            const prevPaperIndex = i - 1;
             const targetSelector = `#p${prevPaperIndex} .back .page-image-wrapper`;
             const container = document.querySelector(targetSelector);
-            if (container) { 
+            if (container && !container.querySelector('.media-overlay')) { 
                 const vid = createCrossBrowserVideo(config.left, false, true);
                 vid.classList.add("media-overlay");
                 container.appendChild(vid); 
@@ -695,11 +727,9 @@ function startPreloader(onComplete) {
     const progressBar = document.getElementById('progress-bar');
     const progressText = document.getElementById('progress-percentage');
     
-    // 1. Najdeme VŠECHNY mediální prvky (obrázky I videa) v knize
-    // Důležité: setupMediaOverlays musí běžet PŘED touto funkcí
+    // Čekáme pouze na obrázky. Videa se načítají asynchronně na pozadí a lazy-loadují se, takže nespomalují první render
     const images = Array.from(document.querySelectorAll('#book img'));
-    const videos = Array.from(document.querySelectorAll('#book video'));
-    const allAssets = [...images, ...videos];
+    const allAssets = [...images];
     
     let totalAssets = allAssets.length;
     let loadedAssets = 0;
@@ -709,11 +739,10 @@ function startPreloader(onComplete) {
         return;
     }
 
-    // Bezpečnostní pojistka: Maximální doba čekání (např. 8 sekund)
     const safetyTimeout = setTimeout(() => {
         console.warn("Preloader timeout - vynucené spuštění");
         finishLoading();
-    }, 8000);
+    }, 4000); // Sníženo z 8 na 4 sekundy
 
     function updateProgress() {
         loadedAssets++;
@@ -722,7 +751,6 @@ function startPreloader(onComplete) {
         if (progressBar) progressBar.style.width = percent + '%';
         if (progressText) progressText.innerText = percent + '%';
 
-        // Pustíme dál, když je vše hotovo
         if (loadedAssets >= totalAssets) {
             clearTimeout(safetyTimeout);
             finishLoading();
@@ -741,36 +769,17 @@ function startPreloader(onComplete) {
         }, 500);
     }
 
-    // 2. Procházení a kontrola načtení
     allAssets.forEach(asset => {
-        
-        // --- A) JE TO OBRÁZEK ---
         if (asset.tagName === 'IMG') {
             if (asset.dataset.src) {
                 asset.src = asset.dataset.src;
                 asset.removeAttribute('data-src');
             }
-            // Pokud už je v cache
             if (asset.complete && asset.naturalHeight !== 0) {
                 updateProgress();
             } else {
                 asset.onload = updateProgress;
-                asset.onerror = updateProgress; // I chybu počítáme
-            }
-        }
-        
-        // --- B) JE TO VIDEO ---
-        else if (asset.tagName === 'VIDEO') {
-            // Videa potřebují alespoň readyState 3 (HAVE_FUTURE_DATA)
-            if (asset.readyState >= 3) {
-                updateProgress();
-            } else {
-                // 'loadeddata' stačí, aby byl vidět první snímek
-                asset.addEventListener('loadeddata', updateProgress, { once: true });
-                asset.addEventListener('error', updateProgress, { once: true });
-                
-                // Vynutíme načítání (důležité pro Safari)
-                asset.load();
+                asset.onerror = updateProgress; 
             }
         }
     });
@@ -800,8 +809,7 @@ function main() {
     slider.max = state.maxSpread;
     
     wrapPageImages();
-    // 1. Nejprve přidáme videa do stránky
-    setupMediaOverlays(); 
+    // Videa se nyní inicializují lazy-loadingem během updateBook() 
     
     setupEventListeners();
 
