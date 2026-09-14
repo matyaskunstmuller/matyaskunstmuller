@@ -60,6 +60,7 @@ function createNav(relativePath = '', activePageID = '') {
             children: portfolioSubNav
         },
         { id: 'projekty-prostreno', href: `${relativePath}projects/prostreno/prostreno.html`, text: 'Prostřeno' },
+        { id: 'projekty-povalec', href: `${relativePath}projects/povalec/povalec.html`, text: 'Povaleč' },
         { id: 'projekty-bertik', href: `${relativePath}projects/bertik/bertik.html`, text: 'Bertík' },
         { id: 'projekty-bezfiltru', href: `${relativePath}projects/bez filtru/bez.filtru.html`, text: 'Bez filtru' },
         { id: 'projekty-blokkada', href: `${relativePath}projects/font/font.html`, text: 'Blokkada' },

@@ -1,4 +1,4 @@
-﻿html, body {
+html, body {
     overflow: hidden;
 }
 
@@ -73,7 +73,6 @@ body.desktop-nav-closed .content-column {
 
 .demo-nav-btn.active {
     color: #fff;
-    border-bottom-color: #fff;
 }
 
 /* --- Ovládání Stěny (Wall Controls) --- */
