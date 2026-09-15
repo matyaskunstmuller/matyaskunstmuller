@@ -8,84 +8,117 @@
     <link rel="stylesheet" href="main_style.css">
     <style>
         /* ========================
-           CAROUSEL — FULL HEIGHT
+           SLIDESHOW — FULL HEIGHT
            ======================== */
 
-        /* Clip carousel inside content area */
+        /* Clip inside content area */
         .content-column {
             overflow: hidden !important;
+            position: relative;
         }
 
-        .carousel-stage {
+        .slideshow-stage {
             width: 100%;
             height: 100vh;
-            overflow: hidden;
+            position: relative;
+            background-color: #000;
+        }
+
+        .slide-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        /* Individual slide */
+        .c-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
             display: flex;
             align-items: center;
-            /* vertically center items */
+            justify-content: center;
+            z-index: 1;
         }
 
-        /* The moving track — duplicated for seamless loop */
-        .carousel-track {
-            display: flex;
-            align-items: stretch;
-            height: 100%;
-            /* animation set by JS once track width is known */
-            will-change: transform;
+        .c-slide.active {
+            opacity: 1;
+            z-index: 2;
         }
 
-        .carousel-track.running {
-            animation: scrollLeft linear infinite;
-        }
-
-        @keyframes scrollLeft {
-            from {
-                transform: translateX(0);
-            }
-
-            to {
-                transform: translateX(-50%);
-            }
-        }
-
-        /* Individual items */
-        .c-item {
-            flex: 0 0 auto;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            margin-right: 3px;
-            /* tiny gap between items */
-        }
-
-        .c-item video,
-        .c-item img {
-            height: 100%;
+        .c-slide video,
+        .c-slide img {
+            max-width: 100%;
+            max-height: 100%;
             width: auto;
-            /* natural width, no distortion */
+            height: auto;
             display: block;
             object-fit: contain;
-            /* never crop */
             pointer-events: none;
         }
 
         /* Links — block so the full area is clickable */
-        .c-item a {
-            display: block;
+        .c-slide a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
             height: 100%;
             text-decoration: none;
         }
 
-        /* Pause on hover */
-        .carousel-stage:hover .carousel-track {
-            animation-play-state: paused;
+        /* Arrows matching the nav */
+        .slide-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            height: 100px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+            transition: opacity 0.2s;
         }
 
-        /* Mobile: slow it down a bit */
-        @media (max-width: 768px) {
-            .c-item {
-                margin-right: 2px;
-            }
+        .slide-arrow:hover {
+            opacity: 1;
+        }
+
+        .slide-arrow:hover::after {
+            border-color: #fff;
+        }
+
+        .slide-arrow::after {
+            content: '';
+            display: block;
+            width: 16px;
+            height: 16px;
+            border-right: 2px solid #888;
+            border-bottom: 2px solid #888;
+            transition: border-color 0.2s;
+        }
+
+        .arrow-left {
+            left: 10px;
+        }
+
+        .arrow-left::after {
+            transform: rotate(135deg);
+        }
+
+        .arrow-right {
+            right: 10px;
+        }
+
+        .arrow-right::after {
+            transform: rotate(-45deg);
         }
     </style>
 </head>
@@ -94,10 +127,12 @@
     <div id="nav-placeholder"></div>
 
     <main class="content-column">
-        <div class="carousel-stage" id="carouselStage">
-            <div class="carousel-track" id="carouselTrack">
+        <div class="slideshow-stage" id="slideshowStage">
+            <div class="slide-arrow arrow-left" id="prevBtn"></div>
+            <div class="slide-container" id="slideContainer">
                 <!-- populated by JS -->
             </div>
+            <div class="slide-arrow arrow-right" id="nextBtn"></div>
         </div>
     </main>
 
@@ -106,14 +141,13 @@
         if (typeof createNav === 'function') createNav('', 'main');
 
         /* ==============================================
-           DATA — projects in order, then photo albums
-           interleaved every 3rd project
+           DATA — projects in order
            ============================================== */
 
-        // Projects in projekty order
         const projects = [
             { src: "projects/projekty/přední desky.webp", type: "img", link: "projects/book/bookengine.html" },
             { src: "projects/projekty/prostreno.webp", type: "img", link: "projects/prostreno/prostreno.html" },
+            { src: "projects/povalec/media/povalec_logo_bila.webm", type: "video", link: "projects/povalec/povalec.html" },
             { src: "projects/projekty/showcase animace panaček_1.webm", type: "video", link: "projects/bertik/bertik.html" },
             { src: "projects/projekty/bez filtru_fotodokumentace knížky-10.webp", type: "img", link: "projects/bez filtru/bez.filtru.html" },
             { src: "projects/projekty/blokkada.webm", type: "video", link: "projects/font/font.html" },
@@ -124,13 +158,14 @@
             { src: "projects/projekty/360.webm", type: "video", link: "projects/book/bookengine.html#spread=3" },
         ];
 
-        /* Items = just projects, no albums */
-        const items = projects;
-
         /* Build DOM elements */
-        function makeItem(data) {
+        const container = document.getElementById('slideContainer');
+        const slides = [];
+
+        projects.forEach((data, index) => {
             const wrapper = document.createElement('div');
-            wrapper.className = 'c-item';
+            wrapper.className = 'c-slide';
+            if (index === 0) wrapper.classList.add('active');
 
             const a = document.createElement('a');
             a.href = data.link;
@@ -152,87 +187,75 @@
             }
 
             wrapper.appendChild(a);
-            return wrapper;
-        }
-
-        /* Populate track */
-        const track = document.getElementById('carouselTrack');
-
-        items.forEach(data => track.appendChild(makeItem(data)));
-
-        /* Seamless loop: clone first, wait for layout to settle, then animate */
-        const originalItems = [...track.children];
-
-        // Step 1: clone all originals immediately
-        originalItems.forEach(child => {
-            track.appendChild(child.cloneNode(true));
-            const v = track.lastChild.querySelector('video');
-            if (v) { v.autoplay = true; v.muted = true; v.loop = true; v.playsInline = true; }
+            container.appendChild(wrapper);
+            slides.push(wrapper);
         });
 
-        track.style.animation = 'none';
+        /* Slideshow Logic */
+        let currentIndex = 0;
+        let slideInterval;
 
-        const vw = window.innerWidth;
-        // 10 s per screen width at ~60fps
-        const BASE = vw / (10 * 60);
-        const FRICTION = 0.90;
-        const BOOST = 0.5;
-
-        let singleWidth = 0;
-        let pos = 0;
-        let extra = 0;
-        let started = false;
-
-        // Poll until track width stabilises (images/videos loaded and laid out)
-        let stableCount = 0;
-        let lastWidth = 0;
-
-        function pollWidth() {
-            // sum actual rendered widths of original items only
-            let w = 0;
-            for (let i = 0; i < originalItems.length; i++) {
-                w += track.children[i].getBoundingClientRect().width;
-            }
-            if (w > 100 && Math.abs(w - lastWidth) < 1) {
-                stableCount++;
+        function showSlide(index) {
+            slides[currentIndex].classList.remove('active');
+            
+            // Handle wrapping
+            if (index >= slides.length) {
+                currentIndex = 0;
+            } else if (index < 0) {
+                currentIndex = slides.length - 1;
             } else {
-                stableCount = 0;
+                currentIndex = index;
             }
-            lastWidth = w;
-
-            if (stableCount >= 5) {
-                // Width is stable — start animation
-                singleWidth = w;
-                pos = Math.random() * singleWidth;
-                track.style.transform = `translateX(${-pos}px)`;
-                started = true;
-                requestAnimationFrame(tick);
-            } else {
-                requestAnimationFrame(pollWidth);
-            }
+            
+            slides[currentIndex].classList.add('active');
         }
 
-        function tick() {
-            extra *= FRICTION;
-            pos += BASE + extra;
-            if (pos >= singleWidth) pos -= singleWidth;
-            if (pos < 0) pos += singleWidth;
-            track.style.transform = `translateX(${-pos}px)`;
-            requestAnimationFrame(tick);
+        function nextSlide() {
+            showSlide(currentIndex + 1);
         }
 
-        requestAnimationFrame(pollWidth);
+        function prevSlide() {
+            showSlide(currentIndex - 1);
+        }
 
-        // Wheel = forward boost only
-        const stage = document.getElementById('carouselStage');
+        function startSlideshow() {
+            stopSlideshow();
+            slideInterval = setInterval(nextSlide, 5000); // 5 seconds
+        }
+
+        function stopSlideshow() {
+            clearInterval(slideInterval);
+        }
+
+        // Event Listeners for Arrows
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            nextSlide();
+            startSlideshow(); // Reset timer on manual navigation
+        });
+
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            prevSlide();
+            startSlideshow(); // Reset timer on manual navigation
+        });
+
+        // Pause on hover
+        const stage = document.getElementById('slideshowStage');
+        stage.addEventListener('mouseenter', stopSlideshow);
+        stage.addEventListener('mouseleave', startSlideshow);
+
+        // Allow scroll wheel navigation (optional, based on previous behavior)
         stage.addEventListener('wheel', (e) => {
             e.preventDefault();
             if (e.deltaY > 0) {
-                extra += e.deltaY * BOOST;
-                extra = Math.min(extra, 80);
+                nextSlide();
+            } else {
+                prevSlide();
             }
-            // scroll up ignored
+            startSlideshow(); // Reset timer
         }, { passive: false });
+
+        // Start auto-play
+        startSlideshow();
     </script>
 </body>
 
