@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagoda</title>
+
+    <link rel="stylesheet" href="../../main_style.css">
+    <link rel="stylesheet" href="pagoda.css">
+</head>
+<body>
+    <div id="nav-placeholder"></div>
+
+    <main class="content-column full-bleed">
+        <div class="pagoda-layout">
+
+            <!-- NÁZEV -->
+            <p class="project-annotation">Pagoda</p>
+
+            <!-- ANOTACE -->
+            <p class="project-annotation">
+                3D scan landartové instalace Pagoda. Inspirací bylo propojení s přírodou skrz různé rituály jako oheň.
+                Ty nás můžou vrátit do momentů z minulosti, avšak jen vzpomínkou. Jutový provázek jsem napnul mezi
+                čtyři stromy do X, a na ně postupně naskládal nařezané dřevo na pagodu. Ta je cca.&nbsp;2,5 metrů
+                vysoká, takže při natažení se jí nemůžete dotknout. Také ji můžete pozorovat ze spoda a sledovat
+                ornament dřeva z pohledu netypického pro táborový oheň.
+            </p>
+
+            <!-- SEKCE: FOTOGRAFIE -->
+            <div class="media-section">
+                <h2 class="section-title">Fotografie</h2>
+                <div class="photo-grid">
+                    <!-- Placeholder 1 -->
+                    <div class="photo-placeholder">
+                        <span>foto 1</span>
+                    </div>
+                    <!-- Placeholder 2 -->
+                    <div class="photo-placeholder">
+                        <span>foto 2</span>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /.pagoda-layout -->
+
+        <!-- SEKCE: 3D SCAN — full-width, mimo max-width kontejner -->
+        <div class="splat-section">
+            <div class="splat-section-header">
+                <h2 class="section-title">3D scan — SuperSplat</h2>
+                <a
+                    href="https://superspl.at/scene/9be09636"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="external-link"
+                >Otevřít v SuperSplat ↗</a>
+            </div>
+            <!-- Wrapper ořezává UI lišty SuperSplatu (overflow: hidden + záporné marginy na iframe) -->
+            <div class="splat-clip">
+                <iframe
+                    src="https://superspl.at/scene/9be09636"
+                    allowfullscreen
+                    allow="xr-spatial-tracking"
+                    title="Pagoda — 3D scan (SuperSplat)"
+                ></iframe>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="../../nav.js"></script>
+    <script>
+        if (typeof createNav === 'function') {
+            createNav('../../', 'projekty-pagoda');
+        }
+    </script>
+</body>
+</html>

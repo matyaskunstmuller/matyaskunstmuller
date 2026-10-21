@@ -1,0 +1,192 @@
+/* ===================================== */
+/* === PAGODA PROJECT PAGE             === */
+/* ===================================== */
+
+/* Scrollovatelný hlavní sloupec */
+.content-column.full-bleed {
+    padding: 0;
+    position: relative;
+    height: 100vh;
+    overflow-y: auto;
+    background-color: #000;
+    scrollbar-width: thin;
+    scrollbar-color: #333 #000;
+}
+
+.content-column.full-bleed::-webkit-scrollbar {
+    width: 6px;
+}
+
+.content-column.full-bleed::-webkit-scrollbar-thumb {
+    background-color: #333;
+    border-radius: 3px;
+}
+
+/* ===================================== */
+/* === LAYOUT                          === */
+/* ===================================== */
+
+.pagoda-layout {
+    max-width: 960px;
+    padding: 3rem 3rem 6rem 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+}
+
+/* ===================================== */
+/* === NÁZEV & ANOTACE                === */
+/* ===================================== */
+
+.project-title {
+    font-size: 2rem;
+    font-weight: normal;
+    color: #fff;
+    font-family: sans-serif;
+    margin: 0;
+    margin-bottom: -2.5rem;
+    letter-spacing: 0.02em;
+}
+
+.project-annotation {
+    color: #ccc;
+    font-size: 0.95rem;
+    line-height: 1.75;
+    font-family: sans-serif;
+    margin: 0;
+    max-width: 70ch;
+}
+
+/* ===================================== */
+/* === SEKCE NADPIS                   === */
+/* ===================================== */
+
+.media-section {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 1.25rem;
+}
+
+.section-title {
+    color: #ccc;
+    font-size: 0.8rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: sans-serif;
+    margin: 0;
+}
+
+/* ===================================== */
+/* === FOTO MŘÍŽKA & PLACEHOLDER     === */
+/* ===================================== */
+
+.photo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+
+.photo-placeholder {
+    aspect-ratio: 4 / 3;
+    background-color: #111;
+    border: 1px solid #222;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-placeholder span {
+    color: #444;
+    font-size: 0.8rem;
+    font-family: sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ===================================== */
+/* === SUPERSPLAT — FULL-WIDTH SEKCE  === */
+/* ===================================== */
+
+.splat-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0 2rem 4rem 2rem;
+}
+
+.splat-section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+}
+
+/* Výška viditelné oblasti — čistá 3D scéna bez lišt */
+/* SuperSplat má horní lištu ~50px a dolní ~44px        */
+:root {
+    --splat-bar-top: 50px;
+    --splat-bar-bottom: 44px;
+}
+
+.splat-clip {
+    width: 100%;
+    /* Ořezáváme lišty: výška = 16:9 viewable area      */
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 4px;
+    background-color: #0a0a0a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    position: relative;
+}
+
+.splat-clip iframe {
+    /* Iframe je větší než obal — lišty vylezou ven a clip je skryje */
+    position: absolute;
+    left: 0;
+    /* Posun nahoru o výšku horní lišty */
+    top: -50px;
+    width: 100%;
+    /* Výška = viditelná plocha + obě lišty dohromady */
+    height: calc(100% + 50px + 44px);
+    border: none;
+}
+
+.external-link {
+    color: #888;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-family: sans-serif;
+    transition: color 0.2s;
+    white-space: nowrap;
+}
+
+.external-link:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+/* ===================================== */
+/* === RESPONZIVITA                   === */
+/* ===================================== */
+
+@media (max-width: 768px) {
+    .pagoda-layout {
+        padding: 5rem 1.5rem 2.5rem 1.5rem;
+        gap: 2.5rem;
+    }
+
+    .splat-section {
+        padding: 0 1rem 3rem 1rem;
+    }
+
+    .project-title {
+        font-size: 1.5rem;
+    }
+
+    .photo-grid {
+        grid-template-columns: 1fr;
+    }
+}
