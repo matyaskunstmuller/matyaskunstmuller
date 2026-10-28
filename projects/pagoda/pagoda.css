@@ -79,31 +79,47 @@
 }
 
 /* ===================================== */
-/* === FOTO MŘÍŽKA & PLACEHOLDER     === */
+/* === FOTO MŘÍŽKA & FOTOGRAFIE      === */
 /* ===================================== */
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.photo-credit {
+    color: #888;
+    font-size: 0.8rem;
+    font-family: sans-serif;
+    letter-spacing: 0.5px;
+}
 
 .photo-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
+    gap: 1rem;
+    align-items: start;
 }
 
-.photo-placeholder {
-    aspect-ratio: 4 / 3;
-    background-color: #111;
-    border: 1px solid #222;
+.photo-item {
+    width: 100%;
     border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    overflow: hidden;
+    background-color: #0d0d0d;
 }
 
-.photo-placeholder span {
-    color: #444;
-    font-size: 0.8rem;
-    font-family: sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+.photo-featured {
+    grid-column: 1 / -1;
+}
+
+.photo-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 4px;
 }
 
 /* ===================================== */
