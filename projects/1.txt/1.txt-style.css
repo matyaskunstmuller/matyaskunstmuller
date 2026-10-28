@@ -1,4 +1,4 @@
-﻿/* ===================================== */
+/* ===================================== */
 /* === ZÁKLADNÍ NASTAVENÍ & LAYOUT === */
 /* ===================================== */
 
@@ -40,8 +40,8 @@ html, body {
 }
 
 body.desktop-nav-closed .book-viewport {
-    margin-left: 40px;
-    width: calc(100% - 40px);
+    margin-left: 0;
+    width: 100%;
 }
 
 
@@ -380,11 +380,11 @@ body.desktop-nav-closed .book-viewport {
     }
 
 .lightbox-arrow.left::before {
-    content: '←';
+    content: '\276E';
 }
 
 .lightbox-arrow.right::before {
-    content: '→';
+    content: '\276F';
 }
 
 /* ===================================== */

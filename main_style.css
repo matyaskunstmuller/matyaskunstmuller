@@ -638,3 +638,169 @@ body {
         height: 25vh;
     }
 }
+
+/* ============================================================ */
+/* ====== GLOBAL COMPONENT & TYPOGRAPHY SYSTEM =============== */
+/* ============================================================ */
+
+/* Full-bleed Content Column (pro projekty s panely i scrollem) */
+.content-column.full-bleed {
+    padding: 0;
+    position: relative;
+    height: 100vh;
+    overflow-y: auto;
+    background-color: #000;
+    scrollbar-width: thin;
+    scrollbar-color: #333 #000;
+}
+
+.content-column.full-bleed::-webkit-scrollbar {
+    width: 6px;
+}
+
+.content-column.full-bleed::-webkit-scrollbar-thumb {
+    background-color: #333;
+    border-radius: 3px;
+}
+
+/* Projektové hlavičky & anotace */
+.project-intro {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.project-name {
+    color: #ccc;
+    font-size: 0.95rem;
+    line-height: 1.75;
+    font-family: sans-serif;
+    margin: 0;
+    font-weight: normal;
+}
+
+.project-annotation {
+    color: #ccc;
+    font-size: 0.95rem;
+    line-height: 1.75;
+    font-family: sans-serif;
+    margin: 0;
+    max-width: 70ch;
+}
+
+/* Sekční labely (Pagoda i Prostřeno standard) */
+.section-label,
+.section-title {
+    color: #ccc;
+    font-size: 0.8rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    font-family: sans-serif;
+    margin: 0;
+    text-transform: none;
+    border: none;
+    padding: 0;
+}
+
+/* Globální záložková navigace (Demo nav) */
+.demo-nav {
+    display: flex;
+    flex-shrink: 0;
+    padding: 1rem 1.5rem;
+    z-index: 200;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    border-bottom: none !important;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.demo-nav-btn {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    color: #888;
+    font-family: inherit;
+    font-size: 0.9rem;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-bottom-color 0.2s;
+    user-select: none;
+}
+
+.demo-nav-btn:hover {
+    color: #fff;
+}
+
+.demo-nav-btn.active {
+    color: #fff;
+}
+
+/* Panely záložek */
+.demo-panel {
+    display: none;
+    flex-grow: 1;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.demo-panel.active {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Standardní textový obsah záložek (O projektu / Obhajoba) */
+.about-content {
+    display: block;
+    padding: 2.5rem 3rem;
+    max-width: 720px;
+    margin: 0;
+    color: #ccc;
+    font-family: inherit;
+    line-height: 1.75;
+    font-size: 0.95rem;
+    overflow-y: auto;
+    height: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: #333 #000;
+}
+
+.about-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.about-content::-webkit-scrollbar-thumb {
+    background-color: #333;
+    border-radius: 3px;
+}
+
+.about-content p {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: #ccc;
+}
+
+.about-content h1,
+.about-content h2,
+.about-content h3 {
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .demo-nav {
+        padding: 4.5rem 1rem 0.75rem 1rem;
+        flex-wrap: wrap;
+    }
+
+    .about-content {
+        padding: 2rem 1.5rem;
+    }
+}

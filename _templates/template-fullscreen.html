@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Název Projektu – Fullscreen Interactive Box</title>
+
+    <!-- Globální styl a navigace -->
+    <link rel="stylesheet" href="../main_style.css">
+    <!-- Vlastní styl crazy layoutu -->
+    <link rel="stylesheet" href="template-fullscreen.css">
+</head>
+<body>
+    <!-- Dynamická boční navigace -->
+    <div id="nav-placeholder"></div>
+
+    <!-- Plátno / Fullscreen Container připravený na boční menu -->
+    <main class="content-column full-bleed fullscreen-stage-container">
+
+        <!-- 1. Interaktivní scéna (Canvas / Three.js / WebGL / Videa / 3D Kniha) -->
+        <div id="interactive-stage" class="interactive-stage">
+            
+            <!-- Ukázkový interaktivní obsah (např. City Smog / 3D Canvas / Multi-video grid) -->
+            <div class="stage-placeholder">
+                <div class="crazy-badge">FULLSCREEN EXPERIMENTAL STAGE</div>
+                <h1 class="stage-title">Krejzy Box & Interaktivní Plátno</h1>
+                <p class="stage-subtitle">
+                    Tento layout běží na celé ploše okna, plně se přizpůsobuje otevírání/zavírání boční lišty a má integrovaný HUD i vysouvací textovou obhajobu.
+                </p>
+                <div class="interactive-demo-box" id="demo-box">
+                    <span>Klikni na mě nebo pohybuj myší</span>
+                </div>
+            </div>
+
+            <!-- Sem se vkládá Three.js <canvas>, City Smog video elementy, nebo 3D Kniha -->
+        </div>
+
+        <!-- 2. Plovoucí HUD / Ovládací panel -->
+        <div class="stage-hud">
+            <button id="hud-sound-btn" class="hud-btn" aria-label="Zvuk">zvuk: vypnuto</button>
+            <button id="hud-info-btn" class="hud-btn" aria-label="O projektu">o projektu</button>
+            <button id="hud-fullscreen-btn" class="hud-btn" aria-label="Celá obrazovka">fullscreen</button>
+        </div>
+
+        <!-- 3. Vysouvací boční panel s obhajobou / informacemi (nebourá fullscreen) -->
+        <aside id="info-drawer" class="info-drawer">
+            <div class="info-drawer-header">
+                <h2 class="section-label">o projektu / obhajoba</h2>
+                <button id="info-drawer-close" class="drawer-close-btn">&times;</button>
+            </div>
+            <div class="info-drawer-body about-content">
+                <h1>Název krejzy projektu</h1>
+                <p>
+                    Vysouvací panel umožňuje návštěvníkovi přečíst si kompletní textovou obhajobu a technické detaily projektu, aniž by došlo k opuštění interaktivního plátna.
+                </p>
+                <h2>Koncept</h2>
+                <p>
+                    Popis experimentu, nestandardní formy a motivace pro vytvoření tohoto interaktivního boxu.
+                </p>
+                <h2>Ovládání a technologie</h2>
+                <p>
+                    Vysvětlení interakce (myš, klávesnice, zvuk, kamera) a použitých technologií (WebGL, Canvas, Media API).
+                </p>
+            </div>
+        </aside>
+
+        <!-- Zatemnění pozadí při otevřeném draweru -->
+        <div id="drawer-backdrop" class="drawer-backdrop"></div>
+
+    </main>
+
+    <!-- Skripty -->
+    <script src="../nav.js"></script>
+    <script>
+        // Inicializace boční navigace
+        createNav('../', '');
+
+        // --- Ovládání Informačního Draweru ---
+        const infoBtn = document.getElementById('hud-info-btn');
+        const drawerCloseBtn = document.getElementById('info-drawer-close');
+        const infoDrawer = document.getElementById('info-drawer');
+        const drawerBackdrop = document.getElementById('drawer-backdrop');
+
+        function openDrawer() {
+            infoDrawer.classList.add('open');
+            drawerBackdrop.classList.add('open');
+        }
+
+        function closeDrawer() {
+            infoDrawer.classList.remove('open');
+            drawerBackdrop.classList.remove('open');
+        }
+
+        infoBtn.addEventListener('click', openDrawer);
+        drawerCloseBtn.addEventListener('click', closeDrawer);
+        drawerBackdrop.addEventListener('click', closeDrawer);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && infoDrawer.classList.contains('open')) {
+                closeDrawer();
+            }
+        });
+
+        // --- Zvuk / Mute tlačítko ---
+        const soundBtn = document.getElementById('hud-sound-btn');
+        let soundOn = false;
+        soundBtn.addEventListener('click', () => {
+            soundOn = !soundOn;
+            soundBtn.textContent = soundOn ? 'zvuk: zapnuto' : 'zvuk: vypnuto';
+            soundBtn.classList.toggle('active', soundOn);
+        });
+
+        // --- Celá obrazovka ---
+        const fsBtn = document.getElementById('hud-fullscreen-btn');
+        fsBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+                fsBtn.textContent = 'zavřít fs';
+            } else {
+                document.exitFullscreen().catch(err => console.log(err));
+                fsBtn.textContent = 'fullscreen';
+            }
+        });
+
+        // --- Demo interakce v plátně ---
+        const demoBox = document.getElementById('demo-box');
+        let hue = 0;
+        demoBox.addEventListener('mousemove', (e) => {
+            hue = (hue + 4) % 360;
+            demoBox.style.borderColor = `hsl(${hue}, 80%, 60%)`;
+        });
+        demoBox.addEventListener('click', () => {
+            demoBox.style.transform = 'scale(0.95)';
+            setTimeout(() => demoBox.style.transform = 'scale(1)', 150);
+        });
+
+        // --- Detekce změn velikosti boční navigace ---
+        // Automaticky informuje plátno (užitečné pro Three.js / WebGL resize)
+        const resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                const width = entry.contentRect.width;
+                const height = entry.contentRect.height;
+                // Dispatch custom event pro 3D / canvas motory
+                window.dispatchEvent(new CustomEvent('stageResize', { detail: { width, height } }));
+            }
+        });
+        resizeObserver.observe(document.querySelector('.fullscreen-stage-container'));
+    </script>
+</body>
+</html>

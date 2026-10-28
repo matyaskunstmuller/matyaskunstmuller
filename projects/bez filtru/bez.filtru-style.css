@@ -38,8 +38,8 @@ html, body {
 }
 
 body.desktop-nav-closed .content-column {
-    margin-left: 40px;
-    width: calc(100% - 40px);
+    margin-left: 0;
+    width: 100%;
 }
 
 /* ===================================== */
@@ -435,8 +435,8 @@ body.desktop-nav-closed .content-column {
 }
 
 .lb-close:hover { background: rgba(0,0,0,0.8); }
-.lightbox-arrow.left::before { content: '←'; }
-.lightbox-arrow.right::before { content: '→'; }
+.lightbox-arrow.left::before { content: '\276E'; }
+.lightbox-arrow.right::before { content: '\276F'; }
 
 /* === REEL & DOTS === */
 #lightbox-reel, #lightbox-dots { display: none; }

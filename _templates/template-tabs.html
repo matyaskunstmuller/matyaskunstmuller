@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Název Projektu – Template Tabs</title>
+
+    <!-- Globální styl a navigace -->
+    <link rel="stylesheet" href="../main_style.css">
+    <!-- Vlastní styl projektu -->
+    <link rel="stylesheet" href="template-tabs.css">
+</head>
+<body>
+    <!-- Dynamická boční navigace -->
+    <div id="nav-placeholder"></div>
+
+    <!-- Hlavní sloupec s přepínatelnými záložkami -->
+    <main class="content-column full-bleed">
+
+        <!-- Horní přepínací lišta záložek -->
+        <nav class="demo-nav" aria-label="Záložky projektu">
+            <button class="demo-nav-btn active" data-target="tab-demo">Demo</button>
+            <button class="demo-nav-btn" data-target="tab-about">Obhajoba</button>
+            <button class="demo-nav-btn" data-target="tab-gallery">Fotodokumentace</button>
+        </nav>
+
+        <!-- ZÁLOŽKA 1: Vizuální / interaktivní demo -->
+        <div id="tab-demo" class="demo-panel active">
+            <div class="tab-media-wrapper">
+                <div class="showcase-container">
+                    <!-- Zde může být video, iframe, interactive canvas apod. -->
+                    <div class="showcase-placeholder">
+                        <p class="showcase-title">Hlavní vizuální výstup / interaktivní demo</p>
+                        <p class="showcase-desc">Vložte video (.webm, .mp4), animaci, interaktivní canvas nebo iframe.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ZÁLOŽKA 2: Text / Obhajoba projektu -->
+        <div id="tab-about" class="demo-panel">
+            <div class="about-content">
+                <h1>Název projektu</h1>
+                <p>
+                    Zde začíná text obhajoby nebo podrobný popis projektu. Veškeré formátování textu, velikost fontu (0.95rem), výška řádku (1.75) a barva textu (#ccc) jsou sjednoceny globálně v celém portfoliu.
+                </p>
+
+                <h2>Koncept a východiska</h2>
+                <p>
+                    Odstavce mají jednotné odsazení. Můžete používat podnadpisy H2 a H3 pro členění delších textů, odrážky a zvýraznění.
+                </p>
+
+                <h2>Technická realizace</h2>
+                <p>
+                    Popis použitých technologií, postupů, softwaru a procesů při tvorbě díla.
+                </p>
+            </div>
+        </div>
+
+        <!-- ZÁLOŽKA 3: Fotodokumentace -->
+        <div id="tab-gallery" class="demo-panel">
+            <div class="tab-gallery-scroll">
+                <div class="tab-gallery-inner">
+                    <h2 class="section-label">fotodokumentace</h2>
+
+                    <div class="masonry-row">
+                        <div class="masonry-col">
+                            <div class="photo-item">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23111' width='600' height='400'/%3E%3Ctext fill='%23555' x='50%25' y='50%25' text-anchor='middle' font-family='sans-serif'%3EFoto 1 (Placeholder)%3C/text%3E%3C/svg%3E" alt="Dokumentace 1">
+                            </div>
+                            <div class="photo-item">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='750' viewBox='0 0 600 750'%3E%3Crect fill='%23111' width='600' height='750'/%3E%3Ctext fill='%23555' x='50%25' y='50%25' text-anchor='middle' font-family='sans-serif'%3EFoto 2 (Placeholder)%3C/text%3E%3C/svg%3E" alt="Dokumentace 2">
+                            </div>
+                        </div>
+                        <div class="masonry-col">
+                            <div class="photo-item">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='750' viewBox='0 0 600 750'%3E%3Crect fill='%23111' width='600' height='750'/%3E%3Ctext fill='%23555' x='50%25' y='50%25' text-anchor='middle' font-family='sans-serif'%3EFoto 3 (Placeholder)%3C/text%3E%3C/svg%3E" alt="Dokumentace 3">
+                            </div>
+                            <div class="photo-item">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23111' width='600' height='400'/%3E%3Ctext fill='%23555' x='50%25' y='50%25' text-anchor='middle' font-family='sans-serif'%3EFoto 4 (Placeholder)%3C/text%3E%3C/svg%3E" alt="Dokumentace 4">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Standardní Lightbox pro fotky -->
+    <div id="lightbox" class="lightbox-overlay" onclick="handleLightboxClick(event)">
+        <button class="lb-btn lb-close" onclick="closeLightbox()" aria-label="Zavřít">&times;</button>
+        <button class="lb-btn lb-prev" onclick="changeLightboxImage(-1)" aria-label="Předchozí">&#10094;</button>
+        <button class="lb-btn lb-next" onclick="changeLightboxImage(1)" aria-label="Další">&#10095;</button>
+        <img id="lightbox-img" src="" alt="Detail fotografie">
+    </div>
+
+    <!-- Skripty -->
+    <script src="../nav.js"></script>
+    <script>
+        // Inicializace boční navigace
+        createNav('../', '');
+
+        // --- Přepínání záložek ---
+        const navButtons = document.querySelectorAll('.demo-nav-btn');
+        const panels = document.querySelectorAll('.demo-panel');
+
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetId = button.getAttribute('data-target');
+
+                navButtons.forEach(btn => btn.classList.remove('active'));
+                panels.forEach(pnl => pnl.classList.remove('active'));
+
+                button.classList.add('active');
+                const targetPanel = document.getElementById(targetId);
+                if (targetPanel) {
+                    targetPanel.classList.add('active');
+                }
+            });
+        });
+
+        // --- Lightbox logika ---
+        const photoItems = Array.from(document.querySelectorAll('.photo-item img'));
+        let currentPhotoIndex = 0;
+        const lightboxEl = document.getElementById('lightbox');
+        const lightboxImgEl = document.getElementById('lightbox-img');
+
+        photoItems.forEach((img, index) => {
+            img.addEventListener('click', () => {
+                currentPhotoIndex = index;
+                openLightbox();
+            });
+        });
+
+        function openLightbox() {
+            lightboxImgEl.src = photoItems[currentPhotoIndex].src;
+            lightboxEl.classList.add('visible');
+            document.addEventListener('keydown', onLightboxKeyDown);
+        }
+
+        function closeLightbox() {
+            lightboxEl.classList.remove('visible');
+            document.removeEventListener('keydown', onLightboxKeyDown);
+        }
+
+        function changeLightboxImage(dir) {
+            currentPhotoIndex = (currentPhotoIndex + dir + photoItems.length) % photoItems.length;
+            lightboxImgEl.src = photoItems[currentPhotoIndex].src;
+        }
+
+        function handleLightboxClick(e) {
+            if (e.target === lightboxEl) {
+                closeLightbox();
+            }
+        }
+
+        function onLightboxKeyDown(e) {
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') changeLightboxImage(-1);
+            if (e.key === 'ArrowRight') changeLightboxImage(1);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Název Projektu – Template Basic</title>
+
+    <!-- Globální styl a navigace -->
+    <link rel="stylesheet" href="../main_style.css">
+    <!-- Vlastní styl projektu -->
+    <link rel="stylesheet" href="template-basic.css">
+</head>
+<body>
+    <!-- Dynamická boční navigace -->
+    <div id="nav-placeholder"></div>
+
+    <!-- Hlavní scrollovatelný sloupec -->
+    <main class="content-column full-bleed">
+        <div class="basic-layout">
+
+            <!-- 1. Úvod projektu: název a anotace -->
+            <header class="project-intro">
+                <h1 class="project-name">název projektu</h1>
+                <p class="project-annotation">
+                    Anotace projektu popisující hlavní koncept, techniku nebo téma. Text má jednotnou velikost a výšku řádku v souladu s celým portfoliem.
+                </p>
+            </header>
+
+            <!-- 2. Galerie / Fotodokumentace -->
+            <section class="media-section">
+                <h2 class="section-label">fotografie</h2>
+
+                <!-- Masonry grid (2 sloupce na desktopu, 1 na mobilu) -->
+                <div class="masonry-row" id="photo-grid">
+                    <div class="masonry-col" id="col-0">
+                        <div class="photo-item">
+                            <!-- Nahraďte src skutečnými fotkami projektu -->
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23111' width='600' height='400'/%3E%3Ctext fill='%23555' x='50%25' y='50%25' text-anchor='middle' font-family='sans-serif'%3EFoto 1 (Placeholder)%3C/text%3E%3C/svg%3E" alt="Ukázka 1">
+                        </div>
+                        <div class="photo-item">
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='750' viewBox='0 0 600 750'%3E%3Crect fill='%23111' width='600' height='750'/%3E%3Ctext fill='%23555' x='50%25' y='50%25' text-anchor='middle' font-family='sans-serif'%3EFoto 2 (Placeholder)%3C/text%3E%3C/svg%3E" alt="Ukázka 2">
+                        </div>
+                    </div>
+                    <div class="masonry-col" id="col-1">
+                        <div class="photo-item">
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='750' viewBox='0 0 600 750'%3E%3Crect fill='%23111' width='600' height='750'/%3E%3Ctext fill='%23555' x='50%25' y='50%25' text-anchor='middle' font-family='sans-serif'%3EFoto 3 (Placeholder)%3C/text%3E%3C/svg%3E" alt="Ukázka 3">
+                        </div>
+                        <div class="photo-item">
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23111' width='600' height='400'/%3E%3Ctext fill='%23555' x='50%25' y='50%25' text-anchor='middle' font-family='sans-serif'%3EFoto 4 (Placeholder)%3C/text%3E%3C/svg%3E" alt="Ukázka 4">
+                        </div>
+                    </div>
+                </div>
+
+                <p class="photo-credit">vyfotil: Jméno Autora</p>
+            </section>
+
+            <!-- 3. Interaktivní prvek / Video / 3D embed -->
+            <section class="embed-section">
+                <div class="embed-header">
+                    <h2 class="section-label">video / 3d scan / embed</h2>
+                    <a href="#" target="_blank" rel="noopener noreferrer" class="external-link">otevřít externě &#8599;</a>
+                </div>
+                <div class="embed-clip">
+                    <!-- Zde může být <video autoplay muted loop playsinline>, <iframe>, nebo 3D WebGL plátno -->
+                    <div class="embed-placeholder">
+                        <span>Interaktivní embed / video / 3D přehrávač</span>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Standardní Lightbox pro zvětšení fotografií -->
+    <div id="lightbox" class="lightbox-overlay" onclick="handleLightboxClick(event)">
+        <button class="lb-btn lb-close" onclick="closeLightbox()" aria-label="Zavřít">&times;</button>
+        <button class="lb-btn lb-prev" onclick="changeLightboxImage(-1)" aria-label="Předchozí">&#10094;</button>
+        <button class="lb-btn lb-next" onclick="changeLightboxImage(1)" aria-label="Další">&#10095;</button>
+        <img id="lightbox-img" src="" alt="Detail fotografie">
+    </div>
+
+    <!-- Skripty -->
+    <script src="../nav.js"></script>
+    <script>
+        // Inicializace boční navigace (cesta k rootu, ID aktivní stránky)
+        createNav('../', '');
+
+        // --- Lightbox logika ---
+        const photoItems = Array.from(document.querySelectorAll('.photo-item img'));
+        let currentPhotoIndex = 0;
+        const lightboxEl = document.getElementById('lightbox');
+        const lightboxImgEl = document.getElementById('lightbox-img');
+
+        photoItems.forEach((img, index) => {
+            img.addEventListener('click', () => {
+                currentPhotoIndex = index;
+                openLightbox();
+            });
+        });
+
+        function openLightbox() {
+            lightboxImgEl.src = photoItems[currentPhotoIndex].src;
+            lightboxEl.classList.add('visible');
+            document.addEventListener('keydown', onLightboxKeyDown);
+        }
+
+        function closeLightbox() {
+            lightboxEl.classList.remove('visible');
+            document.removeEventListener('keydown', onLightboxKeyDown);
+        }
+
+        function changeLightboxImage(dir) {
+            currentPhotoIndex = (currentPhotoIndex + dir + photoItems.length) % photoItems.length;
+            lightboxImgEl.src = photoItems[currentPhotoIndex].src;
+        }
+
+        function handleLightboxClick(e) {
+            if (e.target === lightboxEl) {
+                closeLightbox();
+            }
+        }
+
+        function onLightboxKeyDown(e) {
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') changeLightboxImage(-1);
+            if (e.key === 'ArrowRight') changeLightboxImage(1);
+        }
+    </script>
+</body>
+</html>

@@ -14,9 +14,9 @@
     <main class="content-column full-bleed">
         <div class="pagoda-layout">
 
-            <!-- HLAVIČKA PROJEKTU: NÁZEV & ANOTACE -->
+            <!-- NÁZEV + ANOTACE -->
             <div class="project-intro">
-                <h1 class="project-title">Pagoda</h1>
+                <p class="project-name">Pagoda</p>
                 <p class="project-annotation">
                     3D scan landartové instalace Pagoda. Inspirací bylo propojení s přírodou skrz různé rituály jako oheň.
                     Ty nás můžou vrátit do momentů z minulosti, avšak jen vzpomínkou. Jutový provázek jsem napnul mezi
@@ -26,27 +26,21 @@
                 </p>
             </div>
 
-            <!-- SEKCE: FOTOGRAFIE -->
+            <!-- FOTOGRAFIE -->
             <div class="media-section">
-                <h2 class="section-title">fotografie</h2>
+                <p class="section-label">fotografie</p>
                 <div id="photos-masonry" class="masonry-row"></div>
-                <div class="photo-credit">vyfotil: Alois Martínek</div>
+                <p class="photo-credit">vyfotil: Alois Martínek</p>
             </div>
 
         </div><!-- /.pagoda-layout -->
 
-        <!-- SEKCE: 3D SCAN — full-width, mimo max-width kontejner -->
+        <!-- 3D SCAN — full-width, mimo max-width kontejner -->
         <div class="splat-section">
-            <div class="splat-section-header">
-                <h2 class="section-title">3D scan — SuperSplat</h2>
-                <a
-                    href="https://superspl.at/scene/9be09636"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="external-link"
-                >Otevřít v SuperSplat ↗</a>
+            <div class="splat-header">
+                <p class="section-label">3D scan — SuperSplat</p>
+                <a href="https://superspl.at/scene/9be09636" target="_blank" rel="noopener noreferrer" class="external-link">Otevřít v SuperSplat ↗</a>
             </div>
-            <!-- Wrapper ořezává UI lišty SuperSplatu (overflow: hidden + záporné marginy na iframe) -->
             <div class="splat-clip">
                 <iframe
                     src="https://superspl.at/scene/9be09636"
@@ -59,12 +53,12 @@
 
     </main>
 
-    <!-- LIGHTBOX (MODAL) STEJNÝ JAKO NA STRÁNCE FOTKY -->
-    <div id="lightbox">
-        <button class="lb-control lb-close" onclick="closeLightbox()">&times;</button>
-        <button class="lb-control lb-prev" onclick="changeImage(-1)">&#10094;</button>
-        <button class="lb-control lb-next" onclick="changeImage(1)">&#10095;</button>
-        <img id="lightbox-img" src="" alt="Fullscreen photo">
+    <!-- LIGHTBOX -->
+    <div id="pg-lightbox">
+        <button class="pg-lb-btn pg-lb-close" onclick="pgCloseLightbox()">&times;</button>
+        <button class="pg-lb-btn pg-lb-prev"  onclick="pgChangeImage(-1)">&#10094;</button>
+        <button class="pg-lb-btn pg-lb-next"  onclick="pgChangeImage(1)">&#10095;</button>
+        <img id="pg-lightbox-img" src="" alt="">
     </div>
 
     <script src="../../nav.js"></script>
@@ -73,99 +67,92 @@
             createNav('../../', 'projekty-pagoda');
         }
 
-        // =================================================================
-        // DATOVÝ MODEL A GENEROVÁNÍ MASONRY GRIDU (STEJNÝ JAKO V FOTKY.HTML)
-        // =================================================================
-        const photosData = [
-            { src: "media/pagoda-4.webp", alt: "Pagoda instalace — pohled s lidmi" },
-            { src: "media/pagoda-5.webp", alt: "Pagoda v korunách stromů" },
-            { src: "media/pagoda-6.webp", alt: "Ornament dřeva ze spoda" },
-            { src: "media/pagoda-7.webp", alt: "Spadlá instalace Pagoda v lese" }
+        // ---------------------------------------------------------------
+        // FOTO DATA
+        // ---------------------------------------------------------------
+        const pgPhotos = [
+            { src: 'media/pagoda-4.webp', alt: 'Pagoda instalace — pohled s lidmi' },
+            { src: 'media/pagoda-5.webp', alt: 'Pagoda v korunách stromů' },
+            { src: 'media/pagoda-6.webp', alt: 'Ornament dřeva ze spoda' },
+            { src: 'media/pagoda-7.webp', alt: 'Pagoda v lese — pohled ze země' }
         ];
 
-        function renderPhotos() {
+        // ---------------------------------------------------------------
+        // MASONRY GRID (stejný systém jako fotky.html)
+        // ---------------------------------------------------------------
+        function pgRenderPhotos() {
             const container = document.getElementById('photos-masonry');
             if (!container) return;
             container.innerHTML = '';
 
-            const isMobile = window.innerWidth <= 768;
-            const colCount = isMobile ? 1 : 2;
-
-            const columns = [];
+            const colCount = window.innerWidth <= 768 ? 1 : 2;
+            const cols = [];
             for (let i = 0; i < colCount; i++) {
                 const col = document.createElement('div');
                 col.className = 'masonry-col';
-                columns.push(col);
+                cols.push(col);
                 container.appendChild(col);
             }
 
-            photosData.forEach((photo, index) => {
-                const item = document.createElement('div');
-                item.className = 'photo-item';
-                item.style.animationDelay = `${index * 0.08}s`;
+            pgPhotos.forEach((photo, i) => {
+                const wrap = document.createElement('div');
+                wrap.className = 'photo-item';
+                wrap.style.animationDelay = (i * 0.08) + 's';
 
                 const img = document.createElement('img');
-                img.src = photo.src;
-                img.alt = photo.alt;
+                img.src     = photo.src;
+                img.alt     = photo.alt;
                 img.loading = 'lazy';
-                img.onclick = () => openLightbox(index);
+                img.onclick = () => pgOpenLightbox(i);
 
-                item.appendChild(img);
-                columns[index % colCount].appendChild(item);
+                wrap.appendChild(img);
+                cols[i % colCount].appendChild(wrap);
             });
         }
 
-        renderPhotos();
+        pgRenderPhotos();
 
-        let resizeTimeout;
+        let pgResizeTimer;
         window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(renderPhotos, 100);
+            clearTimeout(pgResizeTimer);
+            pgResizeTimer = setTimeout(pgRenderPhotos, 120);
         });
 
-        // =================================================================
-        // LIGHTBOX LOGIKA (STEJNÁ JAKO V FOTKY.HTML)
-        // =================================================================
-        const lightbox = document.getElementById('lightbox');
-        const lightboxImg = document.getElementById('lightbox-img');
-        let currentIndex = 0;
+        // ---------------------------------------------------------------
+        // LIGHTBOX
+        // ---------------------------------------------------------------
+        const pgLb    = document.getElementById('pg-lightbox');
+        const pgLbImg = document.getElementById('pg-lightbox-img');
+        let pgIdx = 0;
 
-        function openLightbox(index) {
-            currentIndex = index;
-            updateLightbox();
-            lightbox.style.display = 'flex';
-            setTimeout(() => { lightbox.classList.add('visible'); }, 10);
-            document.body.style.overflow = 'hidden';
+        function pgOpenLightbox(index) {
+            pgIdx = index;
+            pgLbImg.src = pgPhotos[pgIdx].src;
+            pgLbImg.alt = pgPhotos[pgIdx].alt;
+            pgLb.style.display = 'flex';
+            requestAnimationFrame(() => pgLb.classList.add('visible'));
         }
 
-        function closeLightbox() {
-            lightbox.classList.remove('visible');
+        function pgCloseLightbox() {
+            pgLb.classList.remove('visible');
             setTimeout(() => {
-                lightbox.style.display = 'none';
-                lightboxImg.src = "";
+                pgLb.style.display = 'none';
+                pgLbImg.src = '';
             }, 300);
-            document.body.style.overflow = '';
         }
 
-        function changeImage(direction) {
-            currentIndex = (currentIndex + direction + photosData.length) % photosData.length;
-            updateLightbox();
+        function pgChangeImage(dir) {
+            pgIdx = (pgIdx + dir + pgPhotos.length) % pgPhotos.length;
+            pgLbImg.src = pgPhotos[pgIdx].src;
+            pgLbImg.alt = pgPhotos[pgIdx].alt;
         }
 
-        function updateLightbox() {
-            lightboxImg.src = photosData[currentIndex].src;
-            lightboxImg.alt = photosData[currentIndex].alt;
-        }
-
-        lightbox.addEventListener('click', (e) => {
-            if (e.target === lightbox) closeLightbox();
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (!lightbox.classList.contains('visible')) return;
-            if (e.key === 'Escape') closeLightbox();
-            if (e.key === 'ArrowLeft') changeImage(-1);
-            if (e.key === 'ArrowRight') changeImage(1);
+        pgLb.addEventListener('click', e => { if (e.target === pgLb) pgCloseLightbox(); });
+        document.addEventListener('keydown', e => {
+            if (!pgLb.classList.contains('visible')) return;
+            if (e.key === 'Escape')     pgCloseLightbox();
+            if (e.key === 'ArrowLeft')  pgChangeImage(-1);
+            if (e.key === 'ArrowRight') pgChangeImage(1);
         });
     </script>
 </body>

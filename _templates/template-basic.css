@@ -1,0 +1,222 @@
+/* ============================================================ */
+/* TEMPLATE BASIC – CSS (PAGODA / PROSTŘENO STYL)               */
+/* ============================================================ */
+
+/* Layout wrapper */
+.basic-layout {
+    max-width: 960px;
+    padding: 3rem 3rem 5rem 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+}
+
+/* Sekce médií */
+.media-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.photo-credit {
+    color: #888;
+    font-size: 0.8rem;
+    font-family: sans-serif;
+    letter-spacing: 0.4px;
+    margin: 0;
+    margin-top: 0.25rem;
+}
+
+/* ============================================================ */
+/* MASONRY GRID (2 sloupce desktop, 1 mobil)                   */
+/* ============================================================ */
+
+.masonry-row {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    align-items: flex-start;
+}
+
+.masonry-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+}
+
+.photo-item {
+    width: 100%;
+    display: block;
+}
+
+.photo-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 2px;
+    background-color: #111;
+    cursor: zoom-in;
+    transition: filter 0.3s ease, opacity 0.2s ease;
+}
+
+.photo-item img:hover {
+    filter: brightness(1.1);
+    opacity: 0.92;
+}
+
+/* ============================================================ */
+/* EMBED SEKCE (Video / 3D scan / Iframe)                       */
+/* ============================================================ */
+
+.embed-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.embed-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+}
+
+.embed-clip {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 4px;
+    background-color: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    position: relative;
+}
+
+.embed-clip iframe,
+.embed-clip video {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+    object-fit: cover;
+}
+
+.embed-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    font-size: 0.9rem;
+    font-family: sans-serif;
+}
+
+.external-link {
+    color: #888;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-family: sans-serif;
+    transition: color 0.2s;
+    white-space: nowrap;
+}
+
+.external-link:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+/* ============================================================ */
+/* LIGHTBOX                                                     */
+/* ============================================================ */
+
+.lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.lightbox-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.lightbox-overlay img {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    user-select: none;
+    border-radius: 2px;
+}
+
+.lb-btn {
+    position: absolute;
+    color: #888;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 2rem;
+    padding: 20px;
+    user-select: none;
+    transition: color 0.2s;
+    line-height: 1;
+}
+
+.lb-btn:hover {
+    color: #fff;
+}
+
+.lb-close {
+    top: 15px;
+    right: 25px;
+    font-size: 3rem;
+}
+
+.lb-prev {
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.lb-next {
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* ============================================================ */
+/* RESPONZIVITA                                                  */
+/* ============================================================ */
+
+@media (max-width: 768px) {
+    .basic-layout {
+        padding: 5rem 1.5rem 3rem 1.5rem;
+        gap: 2.5rem;
+    }
+
+    .masonry-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .masonry-col {
+        width: 100%;
+        gap: 15px;
+    }
+
+    .lb-prev, .lb-next {
+        font-size: 1.5rem;
+        padding: 10px;
+    }
+}
