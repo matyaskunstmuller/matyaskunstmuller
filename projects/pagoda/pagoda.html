@@ -14,38 +14,23 @@
     <main class="content-column full-bleed">
         <div class="pagoda-layout">
 
-            <!-- NÁZEV -->
-            <p class="project-annotation">Pagoda</p>
-
-            <!-- ANOTACE -->
-            <p class="project-annotation">
-                3D scan landartové instalace Pagoda. Inspirací bylo propojení s přírodou skrz různé rituály jako oheň.
-                Ty nás můžou vrátit do momentů z minulosti, avšak jen vzpomínkou. Jutový provázek jsem napnul mezi
-                čtyři stromy do X, a na ně postupně naskládal nařezané dřevo na pagodu. Ta je cca.&nbsp;2,5 metrů
-                vysoká, takže při natažení se jí nemůžete dotknout. Také ji můžete pozorovat ze spoda a sledovat
-                ornament dřeva z pohledu netypického pro táborový oheň.
-            </p>
+            <!-- HLAVIČKA PROJEKTU: NÁZEV & ANOTACE -->
+            <div class="project-intro">
+                <h1 class="project-title">Pagoda</h1>
+                <p class="project-annotation">
+                    3D scan landartové instalace Pagoda. Inspirací bylo propojení s přírodou skrz různé rituály jako oheň.
+                    Ty nás můžou vrátit do momentů z minulosti, avšak jen vzpomínkou. Jutový provázek jsem napnul mezi
+                    čtyři stromy do X, a na ně postupně naskládal nařezané dřevo na pagodu. Ta je cca.&nbsp;2,5 metrů
+                    vysoká, takže při natažení se jí nemůžete dotknout. Také ji můžete pozorovat ze spoda a sledovat
+                    ornament dřeva z pohledu netypického pro táborový oheň.
+                </p>
+            </div>
 
             <!-- SEKCE: FOTOGRAFIE -->
             <div class="media-section">
-                <div class="section-header">
-                    <h2 class="section-title">Fotografie</h2>
-                    <span class="photo-credit">vyfotil: Alois Martínek</span>
-                </div>
-                <div class="photo-grid">
-                    <div class="photo-item photo-featured">
-                        <img src="media/pagoda-4.webp" alt="Pagoda instalace — pohled s lidmi" class="photo-img" loading="lazy">
-                    </div>
-                    <div class="photo-item">
-                        <img src="media/pagoda-5.webp" alt="Pagoda v korunách stromů" class="photo-img" loading="lazy">
-                    </div>
-                    <div class="photo-item">
-                        <img src="media/pagoda-6.webp" alt="Ornament dřeva ze spoda" class="photo-img" loading="lazy">
-                    </div>
-                    <div class="photo-item photo-featured">
-                        <img src="media/pagoda-7.webp" alt="Spadlá instalace Pagoda v lese" class="photo-img" loading="lazy">
-                    </div>
-                </div>
+                <h2 class="section-title">fotografie</h2>
+                <div id="photos-masonry" class="masonry-row"></div>
+                <div class="photo-credit">vyfotil: Alois Martínek</div>
             </div>
 
         </div><!-- /.pagoda-layout -->
@@ -74,11 +59,114 @@
 
     </main>
 
+    <!-- LIGHTBOX (MODAL) STEJNÝ JAKO NA STRÁNCE FOTKY -->
+    <div id="lightbox">
+        <button class="lb-control lb-close" onclick="closeLightbox()">&times;</button>
+        <button class="lb-control lb-prev" onclick="changeImage(-1)">&#10094;</button>
+        <button class="lb-control lb-next" onclick="changeImage(1)">&#10095;</button>
+        <img id="lightbox-img" src="" alt="Fullscreen photo">
+    </div>
+
     <script src="../../nav.js"></script>
     <script>
         if (typeof createNav === 'function') {
             createNav('../../', 'projekty-pagoda');
         }
+
+        // =================================================================
+        // DATOVÝ MODEL A GENEROVÁNÍ MASONRY GRIDU (STEJNÝ JAKO V FOTKY.HTML)
+        // =================================================================
+        const photosData = [
+            { src: "media/pagoda-4.webp", alt: "Pagoda instalace — pohled s lidmi" },
+            { src: "media/pagoda-5.webp", alt: "Pagoda v korunách stromů" },
+            { src: "media/pagoda-6.webp", alt: "Ornament dřeva ze spoda" },
+            { src: "media/pagoda-7.webp", alt: "Spadlá instalace Pagoda v lese" }
+        ];
+
+        function renderPhotos() {
+            const container = document.getElementById('photos-masonry');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const isMobile = window.innerWidth <= 768;
+            const colCount = isMobile ? 1 : 2;
+
+            const columns = [];
+            for (let i = 0; i < colCount; i++) {
+                const col = document.createElement('div');
+                col.className = 'masonry-col';
+                columns.push(col);
+                container.appendChild(col);
+            }
+
+            photosData.forEach((photo, index) => {
+                const item = document.createElement('div');
+                item.className = 'photo-item';
+                item.style.animationDelay = `${index * 0.08}s`;
+
+                const img = document.createElement('img');
+                img.src = photo.src;
+                img.alt = photo.alt;
+                img.loading = 'lazy';
+                img.onclick = () => openLightbox(index);
+
+                item.appendChild(img);
+                columns[index % colCount].appendChild(item);
+            });
+        }
+
+        renderPhotos();
+
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(renderPhotos, 100);
+        });
+
+        // =================================================================
+        // LIGHTBOX LOGIKA (STEJNÁ JAKO V FOTKY.HTML)
+        // =================================================================
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        let currentIndex = 0;
+
+        function openLightbox(index) {
+            currentIndex = index;
+            updateLightbox();
+            lightbox.style.display = 'flex';
+            setTimeout(() => { lightbox.classList.add('visible'); }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('visible');
+            setTimeout(() => {
+                lightbox.style.display = 'none';
+                lightboxImg.src = "";
+            }, 300);
+            document.body.style.overflow = '';
+        }
+
+        function changeImage(direction) {
+            currentIndex = (currentIndex + direction + photosData.length) % photosData.length;
+            updateLightbox();
+        }
+
+        function updateLightbox() {
+            lightboxImg.src = photosData[currentIndex].src;
+            lightboxImg.alt = photosData[currentIndex].alt;
+        }
+
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) closeLightbox();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (!lightbox.classList.contains('visible')) return;
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') changeImage(-1);
+            if (e.key === 'ArrowRight') changeImage(1);
+        });
     </script>
 </body>
 </html>

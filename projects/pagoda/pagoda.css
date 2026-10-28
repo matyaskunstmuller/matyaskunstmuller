@@ -38,13 +38,18 @@
 /* === NÁZEV & ANOTACE                === */
 /* ===================================== */
 
+.project-intro {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem; /* malá a kompaktní mezera mezi Pagoda a textem */
+}
+
 .project-title {
-    font-size: 2rem;
+    font-size: 1rem;
     font-weight: normal;
     color: #fff;
     font-family: sans-serif;
     margin: 0;
-    margin-bottom: -2.5rem;
     letter-spacing: 0.02em;
 }
 
@@ -73,21 +78,54 @@
     font-size: 0.8rem;
     font-weight: bold;
     letter-spacing: 1px;
-    text-transform: uppercase;
+    text-transform: none; /* v mínuskách podle požadavku */
     font-family: sans-serif;
     margin: 0;
 }
 
 /* ===================================== */
-/* === FOTO MŘÍŽKA & FOTOGRAFIE      === */
+/* === FOTO MŘÍŽKA PODLE STRÁNKY FOTKY === */
 /* ===================================== */
 
-.section-header {
+.masonry-row {
     display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 20px;
+    width: 100%;
+    align-items: flex-start;
+}
+
+.masonry-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+}
+
+.photo-item {
+    width: 100%;
+    display: block;
+    opacity: 0;
+    animation: fadeIn 0.8s ease forwards;
+}
+
+.photo-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 2px;
+    transition: filter 0.3s, opacity 0.2s;
+    background-color: #111;
+    cursor: zoom-in;
+}
+
+.photo-item img:hover {
+    filter: brightness(1.1);
+    opacity: 0.9;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
 }
 
 .photo-credit {
@@ -95,31 +133,72 @@
     font-size: 0.8rem;
     font-family: sans-serif;
     letter-spacing: 0.5px;
+    margin-top: 0.25rem;
 }
 
-.photo-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    align-items: start;
-}
+/* ===================================== */
+/* === LIGHTBOX (MODAL)               === */
+/* ===================================== */
 
-.photo-item {
+#lightbox {
+    display: none;
+    position: fixed;
+    z-index: 99999;
+    top: 0;
+    left: 0;
     width: 100%;
-    border-radius: 4px;
-    overflow: hidden;
-    background-color: #0d0d0d;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
-.photo-featured {
-    grid-column: 1 / -1;
+#lightbox.visible {
+    opacity: 1;
 }
 
-.photo-img {
-    width: 100%;
-    height: auto;
-    display: block;
-    border-radius: 4px;
+#lightbox img {
+    max-width: 90%;
+    max-height: 90vh;
+    object-fit: contain;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    user-select: none;
+}
+
+.lb-control {
+    position: absolute;
+    color: #888;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 20px;
+    transition: color 0.2s;
+    user-select: none;
+    background: transparent;
+    border: none;
+}
+
+.lb-control:hover {
+    color: #fff;
+}
+
+.lb-close {
+    top: 10px;
+    right: 20px;
+    font-size: 3rem;
+}
+
+.lb-prev {
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.lb-next {
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 /* ===================================== */
@@ -199,10 +278,23 @@
     }
 
     .project-title {
+        font-size: 1rem;
+    }
+
+    .masonry-row {
+        gap: 15px;
+    }
+
+    .masonry-col {
+        gap: 15px;
+    }
+
+    .lb-prev, .lb-next {
+        padding: 10px;
         font-size: 1.5rem;
     }
 
-    .photo-grid {
-        grid-template-columns: 1fr;
+    #lightbox img {
+        max-width: 95%;
     }
 }
